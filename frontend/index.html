@@ -1,0 +1,1438 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FINNY — Finanzas Jóvenes</title>
+<meta name="description" content="Gestiona tus finanzas personales de forma simple, visual y motivadora. FINNY está hecho para jóvenes.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+/* ═══════════════════════════════════════════════════
+   RESET & BASE
+═══════════════════════════════════════════════════ */
+*, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
+
+:root {
+  /* Palette */
+  --bg-deep:    #060914;
+  --bg-mid:     #0d1128;
+  --bg-card:    rgba(255,255,255,0.04);
+  --bg-card-h:  rgba(255,255,255,0.07);
+  --sidebar-bg: rgba(6,9,20,0.92);
+
+  --blue:       #4facfe;
+  --blue-dim:   rgba(79,172,254,0.15);
+  --purple:     #a855f7;
+  --purple-dim: rgba(168,85,247,0.15);
+  --pink:       #ec4899;
+  --pink-dim:   rgba(236,72,153,0.15);
+  --teal:       #22d3ee;
+  --teal-dim:   rgba(34,211,238,0.15);
+  --green:      #22c55e;
+  --green-dim:  rgba(34,197,94,0.15);
+  --amber:      #f59e0b;
+  --amber-dim:  rgba(245,158,11,0.15);
+  --red:        #ef4444;
+  --red-dim:    rgba(239,68,68,0.15);
+
+  --text:       #f1f5f9;
+  --text-muted: #64748b;
+  --text-soft:  #94a3b8;
+  --border:     rgba(255,255,255,0.07);
+  --border-h:   rgba(255,255,255,0.14);
+
+  --radius-sm: 10px;
+  --radius:    16px;
+  --radius-lg: 24px;
+
+  --sidebar-w: 230px;
+  --right-w:   300px;
+  --transition: .2s cubic-bezier(.4,0,.2,1);
+}
+
+html { scroll-behavior: smooth; }
+
+body {
+  font-family: 'Inter', sans-serif;
+  background: var(--bg-deep);
+  color: var(--text);
+  min-height: 100vh;
+  overflow-x: hidden;
+  background-image:
+    radial-gradient(ellipse 80% 60% at 20% -10%, rgba(79,172,254,.08) 0%, transparent 60%),
+    radial-gradient(ellipse 60% 50% at 80% 100%, rgba(168,85,247,.08) 0%, transparent 60%);
+}
+
+/* ═══════════════════════════════════════════════════
+   AUTH SCREEN
+═══════════════════════════════════════════════════ */
+#auth-screen {
+  display: none;
+  position: fixed; inset: 0; z-index: 1000;
+  background: var(--bg-deep);
+  background-image:
+    radial-gradient(ellipse 80% 60% at 20% -10%, rgba(79,172,254,.12) 0%, transparent 60%),
+    radial-gradient(ellipse 60% 50% at 80% 100%, rgba(168,85,247,.12) 0%, transparent 60%);
+  align-items: center; justify-content: center;
+}
+#auth-screen.visible { display: flex; }
+
+.auth-container {
+  width: 100%; max-width: 420px;
+  padding: 20px;
+  animation: fadeIn .4s ease;
+}
+
+.auth-logo {
+  text-align: center; margin-bottom: 32px;
+}
+.auth-logo-mark {
+  width: 56px; height: 56px; border-radius: 16px;
+  background: linear-gradient(135deg, var(--blue), var(--purple));
+  display: inline-flex; align-items: center; justify-content: center;
+  font-size: 1.2rem; font-weight: 800; color: #fff;
+  box-shadow: 0 8px 32px rgba(79,172,254,.35);
+  margin-bottom: 12px;
+}
+.auth-logo-text {
+  font-size: 1.8rem; font-weight: 800; letter-spacing: -1px;
+  display: block;
+}
+.auth-logo-text span { color: var(--blue); }
+.auth-logo-sub {
+  font-size: .85rem; color: var(--text-muted); margin-top: 4px;
+}
+
+.auth-card {
+  background: rgba(255,255,255,.04);
+  border: 1px solid rgba(255,255,255,.1);
+  border-radius: var(--radius-lg);
+  padding: 32px;
+  backdrop-filter: blur(20px);
+  box-shadow: 0 24px 64px rgba(0,0,0,.4);
+}
+
+.auth-tabs {
+  display: flex; gap: 4px;
+  background: rgba(255,255,255,.04);
+  border-radius: var(--radius-sm); padding: 4px;
+  margin-bottom: 24px;
+}
+.auth-tab {
+  flex: 1; padding: 8px; border: none; border-radius: 8px;
+  font-family: inherit; font-size: .875rem; font-weight: 600;
+  cursor: pointer; transition: var(--transition);
+  background: transparent; color: var(--text-muted);
+}
+.auth-tab.active {
+  background: linear-gradient(135deg, var(--blue), var(--purple));
+  color: #fff; box-shadow: 0 4px 12px rgba(79,172,254,.3);
+}
+
+.auth-panel { display: none; animation: fadeIn .3s ease; }
+.auth-panel.active { display: block; }
+
+.auth-panel h2 {
+  font-size: 1.1rem; font-weight: 700; margin-bottom: 4px;
+}
+.auth-panel p {
+  font-size: .82rem; color: var(--text-muted); margin-bottom: 20px;
+}
+
+.form-group { display: flex; flex-direction: column; gap: 6px; margin-bottom: 14px; }
+.form-group label {
+  font-size: .72rem; font-weight: 600;
+  color: var(--text-muted); text-transform: uppercase; letter-spacing: .5px;
+}
+
+input[type=text], input[type=number], input[type=email],
+input[type=password], select {
+  background: rgba(255,255,255,.05);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  color: var(--text); font-family: inherit; font-size: .9rem;
+  padding: 10px 14px;
+  width: 100%; outline: none;
+  transition: var(--transition);
+  -webkit-appearance: none;
+}
+input::placeholder { color: var(--text-muted); }
+input:focus, select:focus {
+  border-color: rgba(79,172,254,.5);
+  box-shadow: 0 0 0 3px rgba(79,172,254,.1);
+  background: rgba(255,255,255,.07);
+}
+select option { background: #1a1b2e; color: var(--text); }
+
+.btn {
+  padding: 11px 20px; border: none; border-radius: var(--radius-sm);
+  font-family: inherit; font-size: .875rem; font-weight: 600;
+  cursor: pointer; transition: var(--transition);
+  display: flex; align-items: center; justify-content: center; gap: 8px;
+}
+.btn-primary {
+  background: linear-gradient(135deg, var(--blue), var(--purple));
+  color: #fff;
+  box-shadow: 0 4px 16px rgba(79,172,254,.3);
+}
+.btn-primary:hover:not(:disabled) {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 20px rgba(79,172,254,.45);
+}
+.btn-primary:disabled { opacity: .5; cursor: not-allowed; }
+.btn-ghost { background: transparent; border: 1px solid var(--border); color: var(--text-soft); }
+.btn-ghost:hover { border-color: var(--border-h); color: var(--text); background: var(--bg-card); }
+.btn-danger { background: rgba(239,68,68,.15); border: 1px solid rgba(239,68,68,.3); color: var(--red); }
+.btn-danger:hover { background: rgba(239,68,68,.25); }
+.btn-full { width: 100%; }
+.btn-sm { padding: 7px 14px; font-size: .8rem; }
+
+.auth-link {
+  background: none; border: none; color: var(--blue);
+  font-family: inherit; font-size: .82rem; font-weight: 500;
+  cursor: pointer; text-decoration: underline; padding: 0;
+}
+
+.auth-footer {
+  text-align: center; margin-top: 16px;
+  font-size: .82rem; color: var(--text-muted);
+}
+
+.auth-error {
+  background: var(--red-dim); border: 1px solid rgba(239,68,68,.3);
+  border-radius: var(--radius-sm); padding: 10px 14px;
+  font-size: .82rem; color: #fca5a5;
+  margin-bottom: 16px; display: none;
+}
+.auth-error.show { display: block; animation: fadeIn .2s ease; }
+
+.auth-success {
+  background: var(--green-dim); border: 1px solid rgba(34,197,94,.3);
+  border-radius: var(--radius-sm); padding: 10px 14px;
+  font-size: .82rem; color: #86efac;
+  margin-bottom: 16px; display: none;
+}
+.auth-success.show { display: block; animation: fadeIn .2s ease; }
+
+.token-box {
+  background: rgba(168,85,247,.1); border: 1px solid rgba(168,85,247,.3);
+  border-radius: var(--radius-sm); padding: 12px;
+  font-family: monospace; font-size: .8rem; word-break: break-all;
+  color: var(--purple); margin-top: 8px; display: none;
+}
+.token-box.show { display: block; }
+
+/* ═══════════════════════════════════════════════════
+   ALERT BANNER (alert_mode / overspent)
+═══════════════════════════════════════════════════ */
+#alert-banner {
+  position: fixed; top:0; left:0; right:0; z-index:100;
+  padding: 10px 20px;
+  display: flex; align-items:center; justify-content:center; gap:10px;
+  font-size:.875rem; font-weight:600;
+  animation: slideDown .4s ease;
+  transition: var(--transition);
+}
+#alert-banner.warning {
+  background: linear-gradient(90deg, rgba(245,158,11,.25), rgba(239,68,68,.25));
+  border-bottom: 1px solid rgba(245,158,11,.3);
+  backdrop-filter: blur(12px);
+}
+#alert-banner.danger {
+  background: linear-gradient(90deg, rgba(239,68,68,.3), rgba(236,72,153,.2));
+  border-bottom: 1px solid rgba(239,68,68,.4);
+  backdrop-filter: blur(12px);
+}
+#alert-banner.hidden { display:none; }
+
+@keyframes slideDown { from{transform:translateY(-100%);opacity:0} to{transform:translateY(0);opacity:1} }
+
+/* ═══════════════════════════════════════════════════
+   APP LAYOUT
+═══════════════════════════════════════════════════ */
+.app-layout {
+  display: grid;
+  grid-template-columns: var(--sidebar-w) 1fr var(--right-w);
+  min-height: 100vh;
+}
+
+/* ═══════════════════════════════════════════════════
+   SIDEBAR
+═══════════════════════════════════════════════════ */
+.sidebar {
+  background: var(--sidebar-bg);
+  backdrop-filter: blur(24px);
+  border-right: 1px solid var(--border);
+  padding: 24px 0;
+  display: flex;
+  flex-direction: column;
+  position: sticky; top:0; height:100vh;
+  overflow-y: auto;
+}
+
+.sidebar-logo {
+  padding: 0 20px 28px;
+  display: flex; align-items:center; gap:12px;
+}
+.logo-mark {
+  width:38px; height:38px; border-radius:10px;
+  background: linear-gradient(135deg, var(--blue), var(--purple));
+  display:flex; align-items:center; justify-content:center;
+  font-size:.8rem; font-weight:800; color:#fff; letter-spacing:-.5px;
+  box-shadow: 0 4px 16px rgba(79,172,254,.35);
+}
+.logo-text { font-size:1.25rem; font-weight:800; letter-spacing:-.5px; }
+.logo-text span { color: var(--blue); }
+
+.sidebar-nav { flex:1; padding:0 12px; display:flex; flex-direction:column; gap:4px; }
+
+.nav-item {
+  width:100%; background:none; border:none; cursor:pointer;
+  color: var(--text-muted); font-family:inherit; font-size:.875rem; font-weight:500;
+  padding: 10px 12px; border-radius: var(--radius-sm);
+  display:flex; align-items:center; gap:12px;
+  transition: var(--transition); text-align:left;
+}
+.nav-item:hover { background: var(--bg-card-h); color: var(--text); }
+.nav-item.active {
+  background: linear-gradient(90deg, rgba(79,172,254,.15), rgba(168,85,247,.08));
+  color: var(--blue);
+  border-left: 2px solid var(--blue);
+}
+.nav-icon { font-size:1rem; width:20px; text-align:center; }
+.nav-badge {
+  margin-left:auto; min-width:20px; height:20px;
+  background: var(--purple); border-radius:10px;
+  font-size:.7rem; font-weight:700; color:#fff;
+  display:flex; align-items:center; justify-content:center; padding:0 5px;
+}
+
+.sidebar-section-title {
+  font-size:.65rem; font-weight:700; letter-spacing:1.5px;
+  text-transform:uppercase; color:var(--text-muted);
+  padding: 16px 24px 8px; opacity:.6;
+}
+
+.sidebar-footer {
+  padding: 16px 16px 0;
+  border-top: 1px solid var(--border);
+  margin-top: 8px;
+  display: flex; flex-direction: column; gap: 8px;
+}
+.sidebar-profile-mini {
+  display:flex; align-items:center; gap:10px;
+  padding: 12px;
+  border-radius: var(--radius-sm);
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  cursor:pointer; transition: var(--transition);
+}
+.sidebar-profile-mini:hover { background: var(--bg-card-h); }
+.avatar-mini {
+  width:32px; height:32px; border-radius:8px;
+  background: linear-gradient(135deg, var(--purple), var(--pink));
+  display:flex; align-items:center; justify-content:center;
+  font-size:.7rem; font-weight:700; color:#fff;
+  flex-shrink:0;
+}
+.profile-mini-info .name { font-size:.82rem; font-weight:600; }
+.profile-mini-info .level { font-size:.72rem; color: var(--purple); }
+
+/* Logout button */
+.btn-logout {
+  width: 100%; background: rgba(239,68,68,.08);
+  border: 1px solid rgba(239,68,68,.2);
+  border-radius: var(--radius-sm);
+  color: var(--text-muted); font-family: inherit; font-size: .8rem;
+  font-weight: 500; padding: 8px 12px; cursor: pointer;
+  display: flex; align-items: center; justify-content: center; gap: 6px;
+  transition: var(--transition);
+}
+.btn-logout:hover { background: rgba(239,68,68,.15); color: var(--red); border-color: rgba(239,68,68,.4); }
+
+/* ═══════════════════════════════════════════════════
+   MAIN CONTENT
+═══════════════════════════════════════════════════ */
+.main-content {
+  overflow-y: auto;
+  padding: 28px 24px;
+  max-height: 100vh;
+}
+
+.page-header {
+  margin-bottom: 24px;
+}
+.page-header h2 { font-size:1.4rem; font-weight:700; }
+.page-header p  { font-size:.875rem; color:var(--text-muted); margin-top:4px; }
+
+/* SECTION visibility */
+.section { display:none; animation: fadeIn .3s ease; }
+.section.active { display:block; }
+
+@keyframes fadeIn { from{opacity:0;transform:translateY(8px)} to{opacity:1;transform:translateY(0)} }
+
+/* ═══════════════════════════════════════════════════
+   GLASS CARDS
+═══════════════════════════════════════════════════ */
+.glass-card {
+  background: var(--bg-card);
+  backdrop-filter: blur(20px);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 22px;
+  transition: var(--transition);
+}
+.glass-card:hover { border-color: var(--border-h); }
+
+.card-title {
+  font-size:.75rem; font-weight:700; letter-spacing:1px;
+  text-transform:uppercase; color:var(--text-muted);
+  margin-bottom: 14px; display:flex; align-items:center; gap:8px;
+}
+.card-title .dot {
+  width:6px; height:6px; border-radius:50%;
+  background: var(--blue);
+}
+
+/* ═══════════════════════════════════════════════════
+   STATS GRID (dashboard top)
+═══════════════════════════════════════════════════ */
+.stats-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  margin-bottom: 20px;
+}
+
+.stat-card {
+  background: var(--bg-card);
+  backdrop-filter: blur(20px);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 20px;
+  position:relative; overflow:hidden;
+  transition: var(--transition);
+}
+.stat-card:hover { border-color: var(--border-h); transform:translateY(-2px); }
+.stat-card::before {
+  content:''; position:absolute; top:0; right:0;
+  width:80px; height:80px; border-radius:50%;
+  opacity:.1; transform:translate(25%,-25%);
+}
+.stat-card.blue   { border-top: 2px solid var(--blue); }
+.stat-card.blue::before   { background: var(--blue); }
+.stat-card.purple { border-top: 2px solid var(--purple); }
+.stat-card.purple::before { background: var(--purple); }
+.stat-card.pink   { border-top: 2px solid var(--pink); }
+.stat-card.pink::before   { background: var(--pink); }
+.stat-card.teal   { border-top: 2px solid var(--teal); }
+.stat-card.teal::before   { background: var(--teal); }
+.stat-card.green  { border-top: 2px solid var(--green); }
+.stat-card.green::before  { background: var(--green); }
+
+.stat-icon   { font-size:1.4rem; margin-bottom:10px; }
+.stat-label  { font-size:.72rem; color:var(--text-muted); font-weight:600; letter-spacing:.5px; text-transform:uppercase; margin-bottom:6px; }
+.stat-value  { font-size:1.7rem; font-weight:800; letter-spacing:-1px; line-height:1; }
+.stat-value.blue   { color:var(--blue);   text-shadow: 0 0 20px rgba(79,172,254,.4); }
+.stat-value.purple { color:var(--purple); text-shadow: 0 0 20px rgba(168,85,247,.4); }
+.stat-value.pink   { color:var(--pink);   text-shadow: 0 0 20px rgba(236,72,153,.4); }
+.stat-value.teal   { color:var(--teal);   text-shadow: 0 0 20px rgba(34,211,238,.4); }
+.stat-value.green  { color:var(--green);  text-shadow: 0 0 20px rgba(34,197,94,.4); }
+.stat-value.amber  { color:var(--amber);  text-shadow: 0 0 20px rgba(245,158,11,.4); }
+.stat-value.red    { color:var(--red);    text-shadow: 0 0 20px rgba(239,68,68,.4); }
+.stat-sub    { font-size:.75rem; color:var(--text-muted); margin-top:6px; }
+
+/* Big balance card */
+.balance-card {
+  grid-column: 1 / -1;
+  background: linear-gradient(135deg, rgba(79,172,254,.12) 0%, rgba(168,85,247,.1) 100%);
+  border: 1px solid rgba(79,172,254,.2);
+  border-radius: var(--radius-lg);
+  padding: 28px;
+  display:flex; align-items:center; gap:20px;
+  position:relative; overflow:hidden;
+}
+.balance-card::after {
+  content:'💰'; position:absolute; right:24px; top:50%;
+  transform:translateY(-50%); font-size:4rem; opacity:.08;
+}
+.balance-info { flex:1; }
+.balance-label  { font-size:.75rem; text-transform:uppercase; letter-spacing:1px; color:var(--text-soft); margin-bottom:8px; }
+.balance-amount { font-size:2.8rem; font-weight:800; letter-spacing:-2px; color:var(--blue); text-shadow: 0 0 30px rgba(79,172,254,.5); line-height:1; }
+.balance-subrow { display:flex; gap:16px; margin-top:12px; flex-wrap:wrap; }
+.balance-chip {
+  padding:4px 12px; border-radius:20px; border:1px solid var(--border);
+  font-size:.75rem; font-weight:500; background:var(--bg-card);
+}
+
+/* Alert card override */
+.balance-card.alert-low {
+  background: linear-gradient(135deg, rgba(245,158,11,.15), rgba(239,68,68,.1));
+  border-color: rgba(245,158,11,.3);
+}
+.balance-card.alert-low .balance-amount { color:var(--amber); text-shadow:0 0 30px rgba(245,158,11,.5); }
+.balance-card.alert-overspent {
+  background: linear-gradient(135deg, rgba(239,68,68,.2), rgba(236,72,153,.1));
+  border-color: rgba(239,68,68,.35);
+}
+.balance-card.alert-overspent .balance-amount { color:var(--red); text-shadow:0 0 30px rgba(239,68,68,.5); }
+
+/* ═══════════════════════════════════════════════════
+   BUDGET PROGRESS
+═══════════════════════════════════════════════════ */
+.progress-bar-track {
+  height:8px; background:rgba(255,255,255,.06); border-radius:10px;
+  overflow:hidden; margin:10px 0;
+}
+.progress-bar-fill {
+  height:100%; border-radius:10px;
+  background: linear-gradient(90deg, var(--blue), var(--purple));
+  transition: width .6s cubic-bezier(.4,0,.2,1);
+  box-shadow: 0 0 10px rgba(79,172,254,.5);
+}
+.progress-bar-fill.warning { background: linear-gradient(90deg, var(--amber), var(--red)); box-shadow:0 0 10px rgba(245,158,11,.5); }
+.progress-bar-fill.danger  { background: linear-gradient(90deg, var(--red), var(--pink)); box-shadow:0 0 10px rgba(239,68,68,.6); }
+
+.progress-labels {
+  display:flex; justify-content:space-between;
+  font-size:.75rem; color:var(--text-muted);
+}
+
+/* ═══════════════════════════════════════════════════
+   QUICK ADD FORM
+═══════════════════════════════════════════════════ */
+.form-row { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+.form-row.triple { grid-template-columns:2fr 1fr 1fr; }
+
+.form-actions { display:flex; gap:10px; margin-top:12px; }
+.form-actions .btn-primary { flex:1; }
+
+/* ═══════════════════════════════════════════════════
+   ALERTS (inline)
+═══════════════════════════════════════════════════ */
+.inline-alert {
+  padding:10px 14px; border-radius:var(--radius-sm);
+  font-size:.82rem; font-weight:500;
+  display:none; align-items:center; gap:8px; margin-bottom:14px;
+}
+.inline-alert.error   { background:var(--red-dim);   border:1px solid rgba(239,68,68,.3);   color: #fca5a5; }
+.inline-alert.success { background:var(--green-dim); border:1px solid rgba(34,197,94,.3);   color: #86efac; }
+.inline-alert.show    { display:flex; animation:fadeIn .2s ease; }
+
+/* ═══════════════════════════════════════════════════
+   CHART CONTAINERS
+═══════════════════════════════════════════════════ */
+.chart-wrap {
+  position:relative; width:100%; height:200px;
+}
+.chart-wrap.tall { height:260px; }
+
+/* ═══════════════════════════════════════════════════
+   PURCHASES LIST
+═══════════════════════════════════════════════════ */
+.purchase-list { list-style:none; display:flex; flex-direction:column; gap:8px; }
+
+.purchase-item {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding:12px 14px;
+  display:flex; align-items:center; gap:12px;
+  transition:var(--transition);
+  animation: fadeIn .25s ease;
+}
+.purchase-item:hover { background:var(--bg-card-h); border-color:var(--border-h); }
+
+.cat-dot {
+  width:8px; height:8px; border-radius:50%; flex-shrink:0;
+  box-shadow: 0 0 6px currentColor;
+}
+.purchase-info { flex:1; min-width:0; }
+.purchase-name  { font-size:.875rem; font-weight:600; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.purchase-meta  { font-size:.72rem; color:var(--text-muted); margin-top:2px; }
+.purchase-amount { font-size:1rem; font-weight:700; color:var(--blue); white-space:nowrap; }
+.purchase-del {
+  width:28px; height:28px; border-radius:6px;
+  background:none; border:none; cursor:pointer; color:var(--text-muted);
+  display:flex; align-items:center; justify-content:center;
+  font-size:.85rem; transition:var(--transition);
+  opacity:0;
+}
+.purchase-item:hover .purchase-del { opacity:1; }
+.purchase-del:hover { background:var(--red-dim); color:var(--red); }
+
+.empty-state {
+  text-align:center; padding:40px 20px; color:var(--text-muted);
+  font-size:.875rem;
+}
+.empty-state .empty-icon { font-size:2.5rem; margin-bottom:10px; opacity:.5; }
+
+/* ═══════════════════════════════════════════════════
+   STREAK UI
+═══════════════════════════════════════════════════ */
+.streak-display {
+  display:flex; align-items:center; gap:14px;
+}
+.streak-flame {
+  font-size:2rem;
+  filter: drop-shadow(0 0 8px rgba(245,158,11,.7));
+  animation: flamePulse 2s ease-in-out infinite;
+}
+@keyframes flamePulse {
+  0%,100% { transform:scale(1); filter:drop-shadow(0 0 8px rgba(245,158,11,.7)); }
+  50%      { transform:scale(1.1); filter:drop-shadow(0 0 14px rgba(245,158,11,1)); }
+}
+.streak-count { font-size:2.4rem; font-weight:800; color:var(--amber); letter-spacing:-1px; }
+.streak-label { font-size:.75rem; color:var(--text-muted); }
+
+.streak-days { display:flex; gap:6px; margin-top:12px; }
+.streak-day {
+  width:28px; height:28px; border-radius:8px;
+  display:flex; align-items:center; justify-content:center;
+  font-size:.65rem; font-weight:600;
+  border: 1px solid var(--border);
+  background: var(--bg-card); color:var(--text-muted);
+}
+.streak-day.done { background:rgba(245,158,11,.2); border-color:rgba(245,158,11,.4); color:var(--amber); }
+.streak-day.today { background:rgba(245,158,11,.35); border-color:var(--amber); color:#fff; }
+
+/* ═══════════════════════════════════════════════════
+   MISSIONS
+═══════════════════════════════════════════════════ */
+.missions-grid { display:flex; flex-direction:column; gap:12px; }
+
+.mission-card {
+  background:var(--bg-card); border:1px solid var(--border);
+  border-radius:var(--radius-sm); padding:16px;
+  display:flex; gap:14px; align-items:flex-start;
+  transition:var(--transition);
+}
+.mission-card:hover { background:var(--bg-card-h); border-color:var(--border-h); }
+.mission-card.done { opacity:.55; border-color:rgba(34,197,94,.3); }
+.mission-icon-wrap {
+  width:40px; height:40px; border-radius:10px;
+  background: var(--blue-dim); border:1px solid rgba(79,172,254,.2);
+  display:flex; align-items:center; justify-content:center;
+  font-size:1.1rem; flex-shrink:0;
+}
+.mission-card.done .mission-icon-wrap {
+  background: var(--green-dim); border-color:rgba(34,197,94,.2);
+}
+.mission-body { flex:1; min-width:0; }
+.mission-title { font-size:.875rem; font-weight:600; margin-bottom:3px; }
+.mission-desc  { font-size:.75rem; color:var(--text-muted); margin-bottom:10px; }
+.mission-footer { display:flex; align-items:center; justify-content:space-between; gap:8px; }
+.mission-xp {
+  font-size:.7rem; font-weight:700; color:var(--purple);
+  background:var(--purple-dim); padding:2px 8px; border-radius:20px;
+}
+.mission-pct { font-size:.7rem; color:var(--text-muted); }
+.mission-progress { height:4px; background:rgba(255,255,255,.07); border-radius:4px; margin-top:8px; }
+.mission-progress-fill {
+  height:100%; border-radius:4px;
+  background: linear-gradient(90deg, var(--blue), var(--purple));
+  transition: width .6s;
+}
+.mission-card.done .mission-progress-fill { background:var(--green); }
+
+/* ═══════════════════════════════════════════════════
+   ACHIEVEMENTS
+═══════════════════════════════════════════════════ */
+.achievements-grid {
+  display:grid; grid-template-columns: repeat(auto-fill, minmax(140px,1fr));
+  gap:14px;
+}
+
+.achievement-badge {
+  background:var(--bg-card); border:1px solid var(--border);
+  border-radius:var(--radius); padding:20px 14px;
+  text-align:center; transition:var(--transition);
+}
+.achievement-badge:hover { background:var(--bg-card-h); transform:translateY(-2px); }
+.achievement-badge.unlocked {
+  border-color: rgba(168,85,247,.4);
+  background: rgba(168,85,247,.07);
+  box-shadow: 0 4px 20px rgba(168,85,247,.15);
+}
+.achievement-badge.locked { opacity:.4; filter:grayscale(1); }
+
+.badge-icon { font-size:1.8rem; margin-bottom:10px; display:block; }
+.achievement-badge.unlocked .badge-icon {
+  filter: drop-shadow(0 0 8px rgba(168,85,247,.8));
+  animation: iconGlow 2.5s ease-in-out infinite;
+}
+@keyframes iconGlow {
+  0%,100% { filter:drop-shadow(0 0 6px rgba(168,85,247,.7)); }
+  50%      { filter:drop-shadow(0 0 14px rgba(168,85,247,1)); }
+}
+.badge-title { font-size:.78rem; font-weight:700; margin-bottom:4px; }
+.badge-desc  { font-size:.68rem; color:var(--text-muted); line-height:1.4; }
+.badge-unlocked-tag {
+  margin-top:8px; font-size:.65rem; font-weight:700;
+  color:var(--purple); opacity:.8;
+}
+
+/* ═══════════════════════════════════════════════════
+   XP BAR
+═══════════════════════════════════════════════════ */
+.xp-bar {
+  height:6px; background:rgba(255,255,255,.06); border-radius:4px;
+  overflow:hidden; margin:8px 0;
+}
+.xp-bar-fill {
+  height:100%; border-radius:4px;
+  background: linear-gradient(90deg, var(--purple), var(--pink));
+  transition: width .8s cubic-bezier(.4,0,.2,1);
+  box-shadow: 0 0 8px rgba(168,85,247,.6);
+}
+
+/* ═══════════════════════════════════════════════════
+   TIPS CARDS
+═══════════════════════════════════════════════════ */
+.tip-card {
+  background:var(--bg-card); border:1px solid var(--border);
+  border-radius:var(--radius-sm); padding:14px;
+  display:flex; gap:12px;
+  transition:var(--transition); cursor:pointer;
+}
+.tip-card:hover { background:var(--bg-card-h); border-color:var(--border-h); }
+.tip-icon { font-size:1.2rem; flex-shrink:0; line-height:1; padding-top:2px; }
+.tip-body .tip-title { font-size:.825rem; font-weight:700; margin-bottom:4px; }
+.tip-body .tip-text  { font-size:.78rem; color:var(--text-muted); line-height:1.5; }
+.tip-card.tip-blue   { border-left:2px solid var(--blue);   }
+.tip-card.tip-purple { border-left:2px solid var(--purple); }
+.tip-card.tip-pink   { border-left:2px solid var(--pink);   }
+.tip-card.tip-green  { border-left:2px solid var(--green);  }
+.tip-card.tip-red    { border-left:2px solid var(--red);    }
+.tip-card.tip-orange { border-left:2px solid var(--amber);  }
+.tip-card.tip-yellow { border-left:2px solid var(--amber);  }
+
+/* ═══════════════════════════════════════════════════
+   RIGHT PANEL
+═══════════════════════════════════════════════════ */
+.right-panel {
+  padding: 28px 20px 28px;
+  background: rgba(6,9,20,.4);
+  border-left: 1px solid var(--border);
+  backdrop-filter: blur(10px);
+  overflow-y:auto; max-height:100vh;
+  display:flex; flex-direction:column; gap:20px;
+  position:sticky; top:0;
+}
+
+.panel-section-title {
+  font-size:.7rem; font-weight:700; letter-spacing:1.5px;
+  text-transform:uppercase; color:var(--text-muted);
+  margin-bottom:10px; display:flex; align-items:center; gap:8px;
+}
+.panel-section-title::after {
+  content:''; flex:1; height:1px; background:var(--border);
+}
+
+/* Profile widget */
+.profile-widget {
+  background: linear-gradient(135deg, rgba(168,85,247,.15), rgba(236,72,153,.1));
+  border: 1px solid rgba(168,85,247,.2);
+  border-radius: var(--radius);
+  padding: 18px;
+}
+.profile-widget-top { display:flex; align-items:center; gap:12px; margin-bottom:14px; }
+.avatar-large {
+  width:46px; height:46px; border-radius:12px;
+  background: linear-gradient(135deg, var(--purple), var(--pink));
+  display:flex; align-items:center; justify-content:center;
+  font-size:.9rem; font-weight:800; color:#fff;
+  box-shadow: 0 4px 16px rgba(168,85,247,.4);
+}
+.profile-widget-name  { font-size:.95rem; font-weight:700; }
+.profile-widget-level { font-size:.75rem; color:var(--purple); margin-top:2px; }
+.profile-widget-xp    { font-size:.72rem; color:var(--text-muted); margin-top:4px; }
+
+/* Recent activity */
+.activity-list { display:flex; flex-direction:column; gap:8px; }
+.activity-item {
+  display:flex; align-items:center; gap:10px;
+  padding:9px 10px; border-radius:var(--radius-sm);
+  background:var(--bg-card); border:1px solid var(--border);
+  font-size:.8rem;
+}
+.activity-dot {
+  width:6px; height:6px; border-radius:50%; flex-shrink:0;
+}
+.activity-info { flex:1; min-width:0; }
+.activity-name   { font-weight:600; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.activity-cat    { font-size:.68rem; color:var(--text-muted); margin-top:1px; }
+.activity-amount { font-weight:700; color:var(--blue); white-space:nowrap; }
+
+/* Stats mini */
+.mini-stats { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+.mini-stat {
+  background:var(--bg-card); border:1px solid var(--border);
+  border-radius:var(--radius-sm); padding:12px; text-align:center;
+}
+.mini-stat-value { font-size:1.15rem; font-weight:800; }
+.mini-stat-label { font-size:.67rem; color:var(--text-muted); margin-top:3px; text-transform:uppercase; letter-spacing:.5px; }
+
+/* ═══════════════════════════════════════════════════
+   SETTINGS
+═══════════════════════════════════════════════════ */
+.settings-section { margin-bottom:24px; }
+.settings-section h3 { font-size:.9rem; font-weight:700; margin-bottom:14px; padding-bottom:10px; border-bottom:1px solid var(--border); }
+
+.setting-row {
+  display:flex; align-items:center; justify-content:space-between;
+  padding: 12px 0; border-bottom:1px solid rgba(255,255,255,.04);
+}
+.setting-label { font-size:.875rem; }
+.setting-desc  { font-size:.75rem; color:var(--text-muted); margin-top:2px; }
+
+/* ═══════════════════════════════════════════════════
+   CATEGORY COLORS (dots & styles)
+═══════════════════════════════════════════════════ */
+[data-cat="Food"]          { color:#f97316; }
+[data-cat="Transport"]     { color:#38bdf8; }
+[data-cat="Study"]         { color:#4ade80; }
+[data-cat="Entertainment"] { color:#c084fc; }
+[data-cat="Health"]        { color:#f472b6; }
+[data-cat="Other"]         { color:#94a3b8; }
+
+/* ═══════════════════════════════════════════════════
+   FILTER CHIPS
+═══════════════════════════════════════════════════ */
+.filter-chips { display:flex; flex-wrap:wrap; gap:8px; margin-bottom:16px; }
+.chip {
+  padding:5px 14px; border-radius:20px;
+  border:1px solid var(--border); background:transparent;
+  font-size:.75rem; font-weight:600; color:var(--text-muted);
+  font-family:inherit; cursor:pointer; transition:var(--transition);
+}
+.chip:hover { border-color:var(--border-h); color:var(--text); }
+.chip.active {
+  background: rgba(79,172,254,.15); border-color:rgba(79,172,254,.4);
+  color:var(--blue);
+}
+
+/* ═══════════════════════════════════════════════════
+   LOADING SPINNER
+═══════════════════════════════════════════════════ */
+.spinner {
+  display:inline-block; width:16px; height:16px;
+  border:2px solid rgba(255,255,255,.2); border-top-color:#fff;
+  border-radius:50%; animation:spin .7s linear infinite;
+}
+@keyframes spin { to { transform:rotate(360deg); } }
+
+/* ═══════════════════════════════════════════════════
+   TOAST NOTIFICATIONS
+═══════════════════════════════════════════════════ */
+#toast-container {
+  position:fixed; bottom:24px; right:24px; z-index:200;
+  display:flex; flex-direction:column; gap:8px;
+}
+.toast {
+  background:rgba(15,21,50,.95); backdrop-filter:blur(20px);
+  border:1px solid var(--border); border-radius:var(--radius-sm);
+  padding:12px 16px; font-size:.825rem; font-weight:500;
+  display:flex; align-items:center; gap:10px;
+  animation: toastIn .3s ease;
+  max-width:300px; min-width:220px;
+  box-shadow: 0 8px 32px rgba(0,0,0,.4);
+}
+.toast.success { border-left:3px solid var(--green); }
+.toast.error   { border-left:3px solid var(--red); }
+.toast.info    { border-left:3px solid var(--blue); }
+.toast.award   { border-left:3px solid var(--purple); }
+@keyframes toastIn { from{opacity:0;transform:translateY(16px)} to{opacity:1;transform:translateY(0)} }
+
+/* ═══════════════════════════════════════════════════
+   SCROLLBARS
+═══════════════════════════════════════════════════ */
+::-webkit-scrollbar { width:4px; height:4px; }
+::-webkit-scrollbar-track { background:transparent; }
+::-webkit-scrollbar-thumb { background:rgba(255,255,255,.1); border-radius:4px; }
+::-webkit-scrollbar-thumb:hover { background:rgba(255,255,255,.2); }
+
+/* ═══════════════════════════════════════════════════
+   UTIL
+═══════════════════════════════════════════════════ */
+.hidden { display:none !important; }
+.mt-4  { margin-top:4px; }
+.mt-8  { margin-top:8px; }
+.mt-12 { margin-top:12px; }
+.mt-16 { margin-top:16px; }
+.mt-20 { margin-top:20px; }
+.flex  { display:flex; }
+.items-center { align-items:center; }
+.justify-between { justify-content:space-between; }
+.gap-8  { gap:8px; }
+.gap-12 { gap:12px; }
+.text-muted { color:var(--text-muted); font-size:.82rem; }
+.font-bold  { font-weight:700; }
+.two-col { display:grid; grid-template-columns:1fr 1fr; gap:16px; }
+</style>
+</head>
+<body>
+
+<!-- ══════════════════════════════════════════════════════════
+     AUTH SCREEN — Login / Register / Forgot Password
+══════════════════════════════════════════════════════════ -->
+<div id="auth-screen">
+  <div class="auth-container">
+
+    <div class="auth-logo">
+      <div class="auth-logo-mark">fi</div>
+      <div class="auth-logo-text">fin<span>ny</span></div>
+      <div class="auth-logo-sub">Tu compañero financiero 💰</div>
+    </div>
+
+    <!-- ─── LOGIN / REGISTER CARD ─────────────────────────── -->
+    <div class="auth-card" id="auth-main-card">
+      <div class="auth-tabs">
+        <button class="auth-tab active" id="tab-login" onclick="switchAuthTab('login')">Iniciar sesión</button>
+        <button class="auth-tab"        id="tab-register" onclick="switchAuthTab('register')">Crear cuenta</button>
+      </div>
+
+      <!-- LOGIN PANEL -->
+      <div class="auth-panel active" id="panel-login">
+        <h2>¡Bienvenido de vuelta!</h2>
+        <p>Ingresa tus datos para continuar.</p>
+        <div class="auth-error" id="login-error"></div>
+        <div class="form-group">
+          <label for="login-email">Email</label>
+          <input type="email" id="login-email" placeholder="tu@email.com" autocomplete="email">
+        </div>
+        <div class="form-group">
+          <label for="login-password">Contraseña</label>
+          <input type="password" id="login-password" placeholder="••••••••" autocomplete="current-password">
+        </div>
+        <div style="text-align:right; margin-bottom:16px; margin-top:-6px;">
+          <button class="auth-link" onclick="showForgotPassword()">¿Olvidaste tu contraseña?</button>
+        </div>
+        <button class="btn btn-primary btn-full" id="btn-login" onclick="doLogin()">Iniciar sesión</button>
+      </div>
+
+      <!-- REGISTER PANEL -->
+      <div class="auth-panel" id="panel-register">
+        <h2>Crea tu cuenta</h2>
+        <p>Empieza a controlar tus finanzas hoy.</p>
+        <div class="auth-error" id="register-error"></div>
+        <div class="form-group">
+          <label for="reg-username">Tu nombre</label>
+          <input type="text" id="reg-username" placeholder="¿Cómo te llamas?" maxlength="50">
+        </div>
+        <div class="form-group">
+          <label for="reg-email">Email</label>
+          <input type="email" id="reg-email" placeholder="tu@email.com" autocomplete="email">
+        </div>
+        <div class="form-group">
+          <label for="reg-password">Contraseña (mín. 8 caracteres)</label>
+          <input type="password" id="reg-password" placeholder="••••••••" autocomplete="new-password">
+        </div>
+        <button class="btn btn-primary btn-full" id="btn-register" onclick="doRegister()">Crear cuenta</button>
+      </div>
+    </div>
+
+    <!-- ─── FORGOT PASSWORD CARD ───────────────────────────── -->
+    <div class="auth-card" id="auth-forgot-card" style="display:none;">
+      <h2 style="margin-bottom:4px;">Recuperar contraseña</h2>
+      <p style="font-size:.82rem;color:var(--text-muted);margin-bottom:20px;">
+        Ingresa tu email y te enviaremos un token de recuperación.
+      </p>
+      <div class="auth-error"   id="forgot-error"></div>
+      <div class="auth-success" id="forgot-success"></div>
+      <div class="token-box"    id="forgot-token"></div>
+      <div class="form-group">
+        <label for="forgot-email">Email</label>
+        <input type="email" id="forgot-email" placeholder="tu@email.com">
+      </div>
+      <button class="btn btn-primary btn-full" id="btn-forgot" onclick="doForgotPassword()">Enviar token</button>
+
+      <!-- Reset form (shown after token is received) -->
+      <div id="reset-form-section" style="display:none; margin-top:20px; padding-top:20px; border-top:1px solid var(--border);">
+        <p style="font-size:.82rem;color:var(--text-muted);margin-bottom:14px;">Ingresa el token y tu nueva contraseña:</p>
+        <div class="auth-error"   id="reset-error"></div>
+        <div class="auth-success" id="reset-success"></div>
+        <div class="form-group">
+          <label for="reset-token-input">Token de recuperación</label>
+          <input type="text" id="reset-token-input" placeholder="Pega el token aquí">
+        </div>
+        <div class="form-group">
+          <label for="reset-new-password">Nueva contraseña (mín. 8 caracteres)</label>
+          <input type="password" id="reset-new-password" placeholder="••••••••">
+        </div>
+        <button class="btn btn-primary btn-full" id="btn-reset" onclick="doResetPassword()">Cambiar contraseña</button>
+      </div>
+
+      <div class="auth-footer">
+        <button class="auth-link" onclick="hideForgotPassword()">← Volver al login</button>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ── GLOBAL ALERT BANNER ─────────────────────────────────── -->
+<div id="alert-banner" class="hidden">
+  <span id="alert-banner-icon">⚠️</span>
+  <span id="alert-banner-text">Tu saldo es bajo. ¡Cuida cada gasto!</span>
+</div>
+
+<!-- ── APP ────────────────────────────────────────────────── -->
+<div class="app-layout" id="app" style="display:none;">
+
+  <!-- ═══ SIDEBAR ══════════════════════════════════════════ -->
+  <aside class="sidebar">
+    <div class="sidebar-logo">
+      <div class="logo-mark">fi</div>
+      <div class="logo-text">fin<span>ny</span></div>
+    </div>
+
+    <div class="sidebar-section-title">Principal</div>
+    <nav class="sidebar-nav">
+      <button class="nav-item active" data-section="dashboard" id="nav-dashboard">
+        <span class="nav-icon">🏠</span> Dashboard
+      </button>
+      <button class="nav-item" data-section="gastos" id="nav-gastos">
+        <span class="nav-icon">💸</span> Mis Gastos
+      </button>
+      <button class="nav-item" data-section="analytics" id="nav-analytics">
+        <span class="nav-icon">📊</span> Analytics
+      </button>
+    </nav>
+
+    <div class="sidebar-section-title">Gamificación</div>
+    <nav class="sidebar-nav">
+      <button class="nav-item" data-section="misiones" id="nav-misiones">
+        <span class="nav-icon">🎯</span> Misiones
+        <span class="nav-badge" id="badge-misiones">0</span>
+      </button>
+      <button class="nav-item" data-section="logros" id="nav-logros">
+        <span class="nav-icon">🏆</span> Logros
+      </button>
+    </nav>
+
+    <div class="sidebar-section-title">Configuración</div>
+    <nav class="sidebar-nav">
+      <button class="nav-item" data-section="config" id="nav-config">
+        <span class="nav-icon">⚙️</span> Ajustes
+      </button>
+    </nav>
+
+    <div class="sidebar-footer">
+      <div class="sidebar-profile-mini" id="sb-profile" onclick="navigateTo('config')">
+        <div class="avatar-mini" id="sb-avatar">JV</div>
+        <div class="profile-mini-info">
+          <div class="name" id="sb-name">Joven</div>
+          <div class="level" id="sb-level">Nivel 1 · 0 XP</div>
+        </div>
+      </div>
+      <button class="btn-logout" id="btn-logout" onclick="doLogout()">
+        🚪 Cerrar sesión
+      </button>
+    </div>
+  </aside>
+
+  <!-- ═══ MAIN CONTENT ══════════════════════════════════════ -->
+  <main class="main-content">
+
+    <!-- ── DASHBOARD ──────────────────────────────── -->
+    <section id="section-dashboard" class="section active">
+      <div class="page-header">
+        <h2>¡Hola, <span id="dash-name">Joven</span>! 👋</h2>
+        <p>Aquí tienes un resumen de tus finanzas hoy.</p>
+      </div>
+
+      <!-- Balance Card -->
+      <div class="stats-grid" style="grid-template-columns:1fr;">
+        <div class="balance-card" id="balance-card">
+          <div class="balance-info">
+            <div class="balance-label">💰 Saldo disponible este mes</div>
+            <div class="balance-amount" id="balance-amount">$0.00</div>
+            <div class="balance-subrow">
+              <span class="balance-chip">📅 <span id="days-remaining">0</span> días restantes</span>
+              <span class="balance-chip">📆 Dinero diario: <strong id="daily-available">$0.00</strong></span>
+              <span class="balance-chip">📤 Gastado: <strong id="month-spent">$0.00</strong></span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Budget Progress -->
+      <div class="glass-card mt-16">
+        <div class="flex items-center justify-between">
+          <div class="card-title"><span class="dot"></span>Presupuesto del mes</div>
+          <span class="text-muted" id="budget-pct-label">0%</span>
+        </div>
+        <div class="progress-labels">
+          <span>$0</span>
+          <span id="budget-total-label">$0.00</span>
+        </div>
+        <div class="progress-bar-track">
+          <div class="progress-bar-fill" id="budget-fill" style="width:0%"></div>
+        </div>
+        <div class="progress-labels">
+          <span style="color:var(--blue)" id="budget-spent-label">Gastado: $0.00</span>
+          <span style="color:var(--text-muted)">de <span id="budget-of-label">$0.00</span></span>
+        </div>
+        <div id="no-budget-hint" class="text-muted mt-8" style="font-size:.78rem;">
+          ⚙️ No has configurado un presupuesto. <button class="btn btn-ghost" style="padding:3px 10px;font-size:.75rem;display:inline-flex;" onclick="navigateTo('config')">Configurar →</button>
+        </div>
+      </div>
+
+      <!-- Stats row -->
+      <div class="stats-grid mt-16">
+        <div class="stat-card blue">
+          <div class="stat-icon">💸</div>
+          <div class="stat-label">Gasto hoy</div>
+          <div class="stat-value blue" id="today-spent">$0.00</div>
+          <div class="stat-sub" id="today-vs-yesterday"></div>
+        </div>
+        <div class="stat-card purple">
+          <div class="stat-icon">📅</div>
+          <div class="stat-label">Esta semana</div>
+          <div class="stat-value purple" id="week-spent">$0.00</div>
+          <div class="stat-sub">desde el lunes</div>
+        </div>
+      </div>
+
+      <!-- Streak & Level -->
+      <div class="two-col mt-16">
+        <div class="glass-card">
+          <div class="card-title"><span class="dot" style="background:var(--amber)"></span>Racha diaria</div>
+          <div class="streak-display">
+            <span class="streak-flame" id="streak-flame">🔥</span>
+            <div>
+              <div class="streak-count" id="streak-count">0</div>
+              <div class="streak-label">días seguidos</div>
+            </div>
+          </div>
+          <div class="streak-days" id="streak-days-row"></div>
+          <div class="text-muted mt-8" id="streak-longest" style="font-size:.75rem;"></div>
+        </div>
+        <div class="glass-card">
+          <div class="card-title"><span class="dot" style="background:var(--purple)"></span>Tu nivel</div>
+          <div class="flex items-center gap-12">
+            <div style="font-size:2.2rem;font-weight:800;color:var(--purple);text-shadow:0 0 20px rgba(168,85,247,.5)" id="profile-level">1</div>
+            <div>
+              <div style="font-size:.82rem;font-weight:600;" id="profile-name-level">Nivel 1</div>
+              <div class="text-muted" style="font-size:.72rem;">XP: <span id="profile-xp">0</span> / <span id="profile-xp-next">200</span></div>
+            </div>
+          </div>
+          <div class="xp-bar mt-8">
+            <div class="xp-bar-fill" id="xp-bar-fill" style="width:0%"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 7-day trend chart -->
+      <div class="glass-card mt-16">
+        <div class="card-title"><span class="dot"></span>Gasto — últimos 7 días</div>
+        <div class="chart-wrap">
+          <canvas id="chart-trend-dash"></canvas>
+        </div>
+      </div>
+
+      <!-- Quick add form -->
+      <div class="glass-card mt-16">
+        <div class="card-title"><span class="dot" style="background:var(--green)"></span>Registrar gasto rápido</div>
+        <div class="inline-alert error" id="dash-error"></div>
+        <div class="inline-alert success" id="dash-success"></div>
+        <form id="dash-form" autocomplete="off">
+          <div class="form-row triple">
+            <div class="form-group">
+              <label for="d-name">Nombre</label>
+              <input type="text" id="d-name" placeholder="ej. Café, Bus…" maxlength="100" required>
+            </div>
+            <div class="form-group">
+              <label for="d-amount">Monto ($)</label>
+              <input type="number" id="d-amount" step="0.01" min="0.01" placeholder="0.00" required>
+            </div>
+            <div class="form-group">
+              <label for="d-cat">Categoría</label>
+              <select id="d-cat">
+                <option value="Food">🍔 Comida</option>
+                <option value="Transport">🚌 Transporte</option>
+                <option value="Study">📚 Estudio</option>
+                <option value="Entertainment">🎮 Entrete.</option>
+                <option value="Health">❤️ Salud</option>
+                <option value="Other">📦 Otro</option>
+              </select>
+            </div>
+          </div>
+          <div class="form-actions">
+            <button class="btn btn-primary" type="submit" id="dash-submit">
+              <span class="btn-text">+ Agregar gasto</span>
+              <span class="spinner hidden" id="dash-spinner"></span>
+            </button>
+          </div>
+        </form>
+      </div>
+
+      <!-- Active missions teaser -->
+      <div class="glass-card mt-16">
+        <div class="flex items-center justify-between" style="margin-bottom:14px;">
+          <div class="card-title" style="margin:0"><span class="dot" style="background:var(--pink)"></span>Misiones activas</div>
+          <button class="btn btn-ghost" style="padding:5px 12px;font-size:.75rem;" onclick="navigateTo('misiones')">Ver todas →</button>
+        </div>
+        <div class="missions-grid" id="dash-missions"></div>
+      </div>
+    </section>
+
+    <!-- ── GASTOS ──────────────────────────────────── -->
+    <section id="section-gastos" class="section">
+      <div class="page-header">
+        <h2>💸 Mis Gastos</h2>
+        <p>Registra y revisa todos tus movimientos.</p>
+      </div>
+
+      <!-- Form -->
+      <div class="glass-card">
+        <div class="card-title"><span class="dot" style="background:var(--green)"></span>Nuevo gasto</div>
+        <div class="inline-alert error" id="g-error"></div>
+        <div class="inline-alert success" id="g-success"></div>
+        <form id="g-form" autocomplete="off">
+          <div class="form-row">
+            <div class="form-group">
+              <label for="g-name">Nombre del gasto</label>
+              <input type="text" id="g-name" placeholder="ej. Almuerzo, Uber…" maxlength="100" required>
+            </div>
+            <div class="form-group">
+              <label for="g-amount">Monto ($)</label>
+              <input type="number" id="g-amount" step="0.01" min="0.01" placeholder="0.00" required>
+            </div>
+          </div>
+          <div class="form-group mt-12">
+            <label for="g-cat">Categoría</label>
+            <select id="g-cat">
+              <option value="Food">🍔 Comida</option>
+              <option value="Transport">🚌 Transporte</option>
+              <option value="Study">📚 Estudio</option>
+              <option value="Entertainment">🎮 Entretenimiento</option>
+              <option value="Health">❤️ Salud</option>
+              <option value="Other">📦 Otro</option>
+            </select>
+          </div>
+          <div class="form-actions mt-12">
+            <button class="btn btn-primary" type="submit" id="g-submit">
+              <span class="btn-text">Agregar gasto</span>
+              <span class="spinner hidden" id="g-spinner"></span>
+            </button>
+          </div>
+        </form>
+      </div>
+
+      <!-- Filter & list -->
+      <div class="glass-card mt-16">
+        <div class="flex items-center justify-between" style="margin-bottom:14px;">
+          <div class="card-title" style="margin:0"><span class="dot"></span>Historial</div>
+          <span class="text-muted" id="g-count">0 gastos</span>
+        </div>
+        <div class="filter-chips" id="g-filters">
+          <button class="chip active" data-cat="">Todos</button>
+          <button class="chip" data-cat="Food">Comida</button>
+          <button class="chip" data-cat="Transport">Transporte</button>
+          <button class="chip" data-cat="Study">Estudio</button>
+          <button class="chip" data-cat="Entertainment">Entrete.</button>
+          <button class="chip" data-cat="Health">Salud</button>
+          <button class="chip" data-cat="Other">Otro</button>
+        </div>
+        <ul class="purchase-list" id="g-list">
+          <li class="empty-state"><div class="empty-icon">🛍️</div>No hay gastos aún.</li>
+        </ul>
+        <div class="flex items-center justify-between mt-16" id="g-total-row" style="display:none!important">
+          <span class="text-muted">Total filtrado</span>
+          <span style="font-size:1.1rem;font-weight:700;color:var(--blue)" id="g-total">$0.00</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- ── ANALYTICS ──────────────────────────────── -->
+    <section id="section-analytics" class="section">
+      <div class="page-header">
+        <h2>📊 Analytics</h2>
+        <p>Visualiza tus patrones de gasto y tendencias.</p>
+      </div>
+
+      <div class="glass-card">
+        <div class="flex items-center justify-between" style="margin-bottom:14px;">
+          <div class="card-title" style="margin:0"><span class="dot"></span>Tendencia de gasto</div>
+          <div style="display:flex;gap:6px;">
+            <button class="chip active" id="trend-7" onclick="loadTrend(7)">7D</button>
+            <button class="chip" id="trend-14" onclick="loadTrend(14)">14D</button>
+            <button class="chip" id="trend-30" onclick="loadTrend(30)">30D</button>
+          </div>
+        </div>
+        <div class="chart-wrap tall">
+          <canvas id="chart-trend-analytics"></canvas>
+        </div>
+      </div>
+
+      <div class="two-col mt-16">
+        <div class="glass-card">
+          <div class="card-title"><span class="dot" style="background:var(--purple)"></span>Por categoría</div>
+          <div class="chart-wrap">
+            <canvas id="chart-donut"></canvas>
+          </div>
+        </div>
+        <div class="glass-card">
+          <div class="card-title"><span class="dot" style="background:var(--pink)"></span>Resumen mensual</div>
+          <div id="analytics-stats" class="missions-grid"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ── MISIONES ────────────────────────────────── -->
+    <section id="section-misiones" class="section">
+      <div class="page-header">
+        <h2>🎯 Misiones</h2>
+        <p>Completa misiones para ganar XP y subir de nivel.</p>
+      </div>
+      <div class="two-col">
+        <div>
+          <h3 style="font-size:.85rem;color:var(--text-muted);margin-bottom:12px;text-transform:uppercase;letter-spacing:1px;">Activas</h3>
+          <div class="missions-grid" id="missions-active"></div>
+        </div>
+        <div>
+          <h3 style="font-size:.85rem;color:var(--text-muted);margin-bottom:12px;text-transform:uppercase;letter-spacing:1px;">Completadas</h3>
+          <div class="missions-grid" id="missions-done"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ── LOGROS ─────────────────────────────────── -->
+    <section id="section-logros" class="section">
+      <div class="page-header">
+        <h2>🏆 Logros</h2>
+        <p>Colecciona logros desbloqueando hitos especiales.</p>
+      </div>
+      <div class="glass-card">
+        <div class="achievements-grid" id="achievements-grid"></div>
+      </div>
+    </section>
+
+    <!-- ── CONFIG ─────────────────────────────────── -->
+    <section id="section-config" class="section">
+      <div class="page-header">
+        <h2>⚙️ Configuración</h2>
+        <p>Personaliza FINNY a tu estilo.</p>
+      </div>
+
+      <!-- Budget config -->
+      <div class="glass-card">
+        <div class="card-title"><span class="dot" style="background:var(--green)"></span>Presupuesto mensual</div>
+        <div class="inline-alert success" id="cfg-budget-ok"></div>
+        <div class="form-group">
+          <label for="cfg-budget">Cuánto dinero tienes disponible este mes ($)</label>
+          <input type="number" id="cfg-budget" step="0.01" min="0" placeholder="ej. 500.00">
+        </div>
+        <div class="form-actions mt-12">
+          <button class="btn btn-primary" onclick="saveBudget()">Guardar presupuesto</button>
+        </div>
+        <p class="text-muted mt-8" style="font-size:.78rem;">FINNY usará este valor para calcular tu dinero diario disponible y activar alertas.</p>
+      </div>
+
+      <!-- Profile config -->
+      <div class="glass-card mt-16">
+        <div class="card-title"><span class="dot" style="background:var(--purple)"></span>Tu perfil</div>
+        <div class="inline-alert success" id="cfg-profile-ok"></div>
+        <div class="form-row">
+          <div class="form-group">
+            <label for="cfg-name">Tu nombre</label>
+            <input type="text" id="cfg-name" placeholder="¿Cómo quieres que te llame FINNY?" maxlength="30">
+          </div>
+          <div class="form-group">
+            <label for="cfg-avatar">Iniciales (2 letras)</label>
+            <input type="text" id="cfg-avatar" placeholder="JV" maxlength="2">
+          </div>
+        </div>
+        <div class="form-actions mt-12">
+          <button class="btn btn-primary" onclick="saveProfile()">Guardar perfil</button>
+        </div>
+      </div>
+
+      <!-- Stats info -->
+      <div class="glass-card mt-16">
+        <div class="card-title"><span class="dot" style="background:var(--teal)"></span>Tus estadísticas globales</div>
+        <div class="mini-stats" id="global-stats"></div>
+      </div>
+
+      <!-- Danger zone -->
+      <div class="glass-card mt-16" style="border-color:rgba(239,68,68,.2);">
+        <div class="card-title"><span class="dot" style="background:var(--red)"></span>Sesión</div>
+        <p class="text-muted" style="font-size:.82rem;margin-bottom:14px;">Cerrar sesión te desconectará de FINNY. Tus datos seguirán guardados.</p>
+        <button class="btn btn-danger" onclick="doLogout()">🚪 Cerrar sesión</button>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- ═══ RIGHT PANEL ═══════════════════════════════════════ -->
+  <aside class="right-panel">
+
+    <!-- Profile widget -->
+    <div>
+      <div class="panel-section-title">Perfil</div>
+      <div class="profile-widget">
+        <div class="profile-widget-top">
+          <div class="avatar-large" id="rp-avatar">JV</div>
+          <div>
+            <div class="profile-widget-name" id="rp-name">Joven Finanzas</div>
+            <div class="profile-widget-level" id="rp-level">Nivel 1 — Novato</div>
+            <div class="profile-widget-xp" id="rp-xp">0 / 200 XP</div>
+          </div>
+        </div>
+        <div class="xp-bar">
+          <div class="xp-bar-fill" id="rp-xp-bar" style="width:0%"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Today's tips -->
+    <div id="rp-tips-section">
+      <div class="panel-section-title">Consejo del día</div>
+      <div id="rp-tips" style="display:flex;flex-direction:column;gap:10px;"></div>
+    </div>
+
+    <!-- Recent activity -->
+    <div>
+      <div class="panel-section-title">Actividad reciente</div>
+      <div class="activity-list" id="rp-activity">
+        <div class="text-muted" style="font-size:.8rem;text-align:center;padding:16px;">Sin actividad reciente</div>
+      </div>
+    </div>
+
+    <!-- Quick stats -->
+    <div>
+      <div class="panel-section-title">Este mes</div>
+      <div class="mini-stats">
+        <div class="mini-stat">
+          <div class="mini-stat-value blue" id="rp-count">0</div>
+          <div class="mini-stat-label">Gastos</div>
+        </div>
+        <div class="mini-stat">
+          <div class="mini-stat-value purple" id="rp-streak-mini">0</div>
+          <div class="mini-stat-label">Racha 🔥</div>
+        </div>
+        <div class="mini-stat">
+          <div class="mini-stat-value pink" id="rp-week">$0</div>
+          <div class="mini-stat-label">Semana</div>
+        </div>
+        <div class="mini-stat">
+          <div class="mini-stat-value teal" id="rp-level-mini">1</div>
+          <div class="mini-stat-label">Nivel ⭐</div>
+        </div>
+      </div>
+    </div>
+
+  </aside>
+
+</div>
+
+<!-- TOAST CONTAINER -->
+<div id="toast-container"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
