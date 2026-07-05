@@ -10,7 +10,7 @@ from flask import Flask, jsonify
 from flask_cors import CORS
 from flask_login import LoginManager
 
-from backend.config import config
+from backend.config import config, IS_PRODUCTION
 from backend.models import db
 
 # ── Import all blueprints ──────────────────────────────────────────────────────
@@ -26,13 +26,41 @@ from backend.routes.dashboard_routes    import dashboard_bp
 login_manager = LoginManager()
 
 
-def create_app(config_name: str = 'development') -> Flask:
+def create_app(config_name: str = None) -> Flask:
     """Application factory — creates and configures the Flask app."""
+    if config_name is None:
+        config_name = 'production' if IS_PRODUCTION else 'development'
+
     app = Flask(__name__)
     app.config.from_object(config[config_name])
 
+    # ── CORS ────────────────────────────────────────────────────────────────────
+    # En desarrollo: solo localhost.
+    # En producción: el dominio de Vercel se detecta automáticamente.
+    vercel_url = os.environ.get('VERCEL_URL', '')
+    allowed_origins = [
+        'http://localhost:8080',
+        'http://127.0.0.1:8080',
+        'http://localhost:5000',
+        'http://127.0.0.1:5000',
+    ]
+    if vercel_url:
+        allowed_origins.append(f'https://{vercel_url}')
+
+    # NEXT_PUBLIC_FRONTEND_URL permite definir un dominio custom (ej. finny.vercel.app)
+    custom_origin = os.environ.get('FRONTEND_URL', '')
+    if custom_origin:
+        allowed_origins.append(custom_origin)
+
+    CORS(
+        app,
+        supports_credentials=True,
+        origins=allowed_origins,
+        allow_headers=['Content-Type', 'Authorization'],
+        methods=['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+    )
+
     # ── Extensions ─────────────────────────────────────────────────────────────
-    CORS(app, supports_credentials=True, origins=['http://localhost:8080', 'http://127.0.0.1:8080'])
     db.init_app(app)
 
     login_manager.init_app(app)
@@ -66,51 +94,26 @@ def create_app(config_name: str = 'development') -> Flask:
         return jsonify({
             'app':     'FINNY Finance API',
             'version': '3.0.0',
-            'auth_endpoints': {
-                'POST /auth/register':       'Crear cuenta nueva',
-                'POST /auth/login':          'Iniciar sesión',
-                'POST /auth/logout':         'Cerrar sesión',
-                'GET  /auth/me':             'Usuario autenticado actual',
-                'POST /auth/forgot-password':'Solicitar reset de contraseña',
-                'POST /auth/reset-password': 'Cambiar contraseña con token',
-            },
-            'private_endpoints': {
-                'GET  /dashboard':           'Resumen completo del dashboard',
-                'GET  /compras':             'Listar compras (opcional ?category=)',
-                'POST /compras':             'Crear una compra',
-                'GET  /compras/<id>':        'Obtener una compra por ID',
-                'DELETE /compras/<id>':      'Eliminar una compra',
-                'GET  /estadisticas':        'Estadísticas por categoría',
-                'GET  /tendencia':           'Tendencia de gasto (?days=7)',
-                'GET  /budget':              'Obtener presupuesto actual',
-                'POST /budget':              'Guardar presupuesto mensual',
-                'GET  /racha':              'Estado de la racha diaria',
-                'GET  /misiones':           'Lista de misiones con progreso',
-                'GET  /logros':             'Lista de logros',
-                'GET  /consejos':           'Consejos personalizados (?limit=3)',
-                'POST /consejos/leer':      'Marcar un consejo como leído (+XP)',
-                'GET  /perfil':             'Perfil del usuario',
-                'PUT  /perfil':             'Actualizar nombre o avatar',
-                'GET  /categorias':         'Categorías disponibles',
-                'GET  /health':             'Health check',
-            }
+            'status':  'running',
+            'db':      str(app.config.get('SQLALCHEMY_DATABASE_URI', ''))[:30] + '…',
         }), 200
 
     # ── DB init ────────────────────────────────────────────────────────────────
     with app.app_context():
         db.create_all()
-        print('[DB] MySQL schema applied / verified.')
+        print('[DB] Schema applied / verified.')
 
     return app
 
 
 # ── Entry point ────────────────────────────────────────────────────────────────
 
-app = create_app('development')
+app = create_app()
 
 if __name__ == '__main__':
     print('=' * 58)
-    print('  FINNY Finance App Backend v3.0  (MySQL + Auth)')
-    print('  Server -> http://localhost:5000')
+    print('  FINNY Finance App Backend v3.0')
+    print(f'  DB → {app.config["SQLALCHEMY_DATABASE_URI"][:50]}')
+    print('  Server → http://localhost:5000')
     print('=' * 58)
     app.run(debug=True, host='0.0.0.0', port=5000)

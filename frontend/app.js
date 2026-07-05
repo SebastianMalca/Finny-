@@ -3,7 +3,10 @@
 // Dark dashboard with Auth: login, registro, recuperación de contraseña.
 // ═══════════════════════════════════════════════════════════════
 
-const API = 'http://localhost:5000';
+// API base URL — automáticamente local en dev, relativo en producción (Vercel)
+const IS_LOCAL = window.location.hostname === 'localhost' ||
+                 window.location.hostname === '127.0.0.1';
+const API = IS_LOCAL ? 'http://localhost:5000' : '';
 
 // ── Category config ───────────────────────────────────────────
 const CAT = {

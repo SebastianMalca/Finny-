@@ -1,6 +1,6 @@
 # 💰 FINNY — Student Finance App v3.0
 
-Aplicación de finanzas personal para estudiantes con **autenticación completa**, base de datos **MySQL**, arquitectura de **3 capas** y sistema de gamificación.
+Aplicación de finanzas personal para estudiantes con **autenticación completa**, base de datos **SQLite/PostgreSQL/MySQL**, arquitectura de **3 capas** y sistema de gamificación.
 
 ---
 
@@ -11,8 +11,8 @@ Aplicación de finanzas personal para estudiantes con **autenticación completa*
 | 🔐 **Autenticación multi-usuario** | Login, registro y recuperación de contraseña |
 | 🔒 **Contraseñas hasheadas** | Werkzeug Security (PBKDF2-SHA256) — nunca texto plano |
 | 🛡️ **Rutas protegidas** | Flask-Login con sesiones seguras |
-| 🗄️ **Base de datos MySQL** | Migrado desde SQLite — coherente con la documentación |
-| 🏗️ **Arquitectura 3 capas** | Frontend · Backend (routes/services/repositories/models) · MySQL |
+| 🗄️ **Base de datos flexible** | SQLite (demo) · PostgreSQL · MySQL — configurable por variable de entorno |
+| 🏗️ **Arquitectura 3 capas** | Frontend · Backend (routes/services/repositories/models) · DB |
 | 📊 **Dashboard completo** | Resumen de gastos diarios, semanales y mensuales por usuario |
 | 🎮 **Gamificación** | XP, niveles, rachas, misiones y logros por usuario |
 | 💡 **Consejos inteligentes** | Tips personalizados según el comportamiento del usuario |
@@ -23,109 +23,46 @@ Aplicación de finanzas personal para estudiantes con **autenticación completa*
 
 ```
 FINNY/
+├── api/
+│   └── index.py            # Punto de entrada para Vercel (serverless)
+│
 ├── backend/
 │   ├── app.py              # Factory de Flask + registro de blueprints
-│   ├── config.py           # Configuración MySQL, sesiones, tokens
+│   ├── config.py           # Configuración DB, sesiones, tokens
 │   │
 │   ├── models/             # Capa de modelos (SQLAlchemy ORM)
-│   │   ├── user.py         # User con password_hash VARCHAR(255)
-│   │   ├── purchase.py
-│   │   ├── budget.py
-│   │   ├── profile.py
-│   │   ├── streak.py
-│   │   ├── mission.py
-│   │   └── achievement.py
-│   │
 │   ├── repositories/       # Capa de acceso a datos
-│   │   ├── user_repository.py
-│   │   ├── purchase_repository.py
-│   │   ├── budget_repository.py
-│   │   ├── profile_repository.py
-│   │   ├── streak_repository.py
-│   │   ├── mission_repository.py
-│   │   └── achievement_repository.py
-│   │
 │   ├── services/           # Capa de lógica de negocio
-│   │   ├── auth_service.py     # register, login, reset password
-│   │   ├── purchase_service.py
-│   │   ├── budget_service.py
-│   │   ├── profile_service.py
-│   │   ├── gamification_service.py
-│   │   ├── tips_service.py
-│   │   └── dashboard_service.py
-│   │
 │   ├── routes/             # Capa de rutas (Flask Blueprints)
-│   │   ├── auth_routes.py      # /auth/*
-│   │   ├── purchase_routes.py  # /compras
-│   │   ├── budget_routes.py    # /presupuesto
-│   │   ├── stats_routes.py     # /estadisticas, /tendencia
-│   │   ├── profile_routes.py   # /perfil
-│   │   ├── gamification_routes.py
-│   │   ├── tips_routes.py      # /consejos
-│   │   └── dashboard_routes.py # /dashboard
-│   │
 │   └── utils/
-│       ├── auth_decorators.py  # @login_required_json
-│       └── validators.py
 │
 ├── frontend/
-│   ├── index.html          # UI con pantallas de login/registro
-│   └── app.js              # Lógica JS con flujo de autenticación
+│   ├── index.html          # UI completa (auth + dashboard)
+│   └── app.js              # Lógica JS con detección automática de entorno
 │
-├── transversal/
-│   └── constants.py
-│
-├── migrations/
-│   └── 001_init_mysql.sql  # DDL completo MySQL
-│
-├── docs/
-│   ├── MER_logico.md       # Modelo Entidad-Relación lógico
-│   ├── MER_fisico.md       # Modelo físico MySQL
-│   └── diccionario_datos.md
-│
-└── requirements.txt
+├── vercel.json             # Configuración de despliegue en Vercel
+├── requirements.txt
+└── .env.example            # Variables de entorno de referencia
 ```
 
 ---
 
-## ⚙️ Requisitos
+## 🚀 Ejecutar localmente
 
-- **Python 3.10+**
-- **MySQL 8.x** (o MariaDB 10.5+)
-- Un navegador moderno (Chrome, Firefox, Edge…)
-
----
-
-## 🚀 Cómo ejecutar el proyecto
-
-### 1. Crear la base de datos MySQL
-
-```sql
-CREATE DATABASE finny_db CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
-```
-
-O usa el script completo:
-```bash
-mysql -u root -p < migrations/001_init_mysql.sql
-```
-
-### 2. Configurar credenciales (opcional)
-
-Por defecto se usa `root / root`. Para cambiarlo, define variables de entorno antes de iniciar:
-
-```bash
-set MYSQL_USER=tu_usuario
-set MYSQL_PASSWORD=tu_contrasena
-set MYSQL_DB=finny_db
-```
-
-### 3. Instalar dependencias
+### 1. Instalar dependencias
 
 ```bash
 pip install -r requirements.txt
 ```
 
-### 4. Iniciar el backend (Terminal 1)
+### 2. (Opcional) Configurar variables de entorno
+
+```bash
+copy .env.example .env
+# Editar .env con tu SECRET_KEY y DATABASE_URL si usas PostgreSQL/MySQL
+```
+
+### 3. Iniciar el backend
 
 ```bash
 python backend/app.py
@@ -133,24 +70,64 @@ python backend/app.py
 
 Deberías ver:
 ```
-==========================================================
-  FINNY Finance App Backend v3.0  (MySQL + Auth)
-  Server → http://localhost:5000
-==========================================================
-[DB] MySQL schema applied / verified.
+FINNY Finance App Backend v3.0
+DB → sqlite:///G:\...\backend\finny.db
+Server → http://localhost:5000
 ```
 
-### 5. Iniciar el servidor del frontend (Terminal 2)
+> Por defecto usa **SQLite** — no se necesita ninguna instalación extra.
+
+### 4. Iniciar el frontend
 
 ```bash
-python -m http.server 8080
+python -m http.server 8080 --directory frontend
 ```
 
-### 6. Abrir la aplicación
+### 5. Abrir la aplicación
 
 Ve a: `http://localhost:8080`
 
-Crea tu cuenta en la pantalla de registro y empieza a usar FINNY.
+---
+
+## ☁️ Despliegue en Vercel
+
+### Opción A — CLI de Vercel (recomendada)
+
+```bash
+npm install -g vercel
+vercel login
+vercel
+```
+
+Vercel detectará automáticamente el `vercel.json` y desplegará:
+- El **frontend** como archivos estáticos
+- El **backend Flask** como Serverless Function en `api/index.py`
+
+### Opción B — GitHub + Vercel Dashboard
+
+1. Sube el proyecto a GitHub
+2. Ve a [vercel.com](https://vercel.com) → **Add New Project**
+3. Importa tu repositorio
+4. En **Environment Variables** agrega:
+   - `SECRET_KEY` → genera con: `python -c "import secrets; print(secrets.token_hex(32))"`
+5. Click **Deploy**
+
+### Variables de entorno en Vercel
+
+| Variable | Requerida | Descripción |
+|---|---|---|
+| `SECRET_KEY` | ✅ Sí | Clave para sesiones Flask (PBKDF2) |
+| `DATABASE_URL` | Opcional | URL de PostgreSQL/MySQL. Si no se define, usa SQLite |
+| `FRONTEND_URL` | Opcional | URL del dominio custom para CORS |
+
+> **⚠️ Nota sobre SQLite en Vercel**: Vercel usa filesystem efímero. Los datos en SQLite se pierden entre despliegues (funciona para demos). Para persistencia real usa **Neon** (PostgreSQL gratuito).
+
+### Usar PostgreSQL con Neon (persistencia real)
+
+1. Crea cuenta en [neon.tech](https://neon.tech) — gratis
+2. Crea un proyecto y copia la **Connection String**
+3. En Vercel → Environment Variables → agrega `DATABASE_URL` con el valor de Neon
+4. Descomenta `psycopg2-binary` en `requirements.txt`
 
 ---
 
@@ -188,33 +165,21 @@ Crea tu cuenta en la pantalla de registro y empieza a usar FINNY.
 | `GET` | `/perfil` | Perfil del usuario |
 | `PUT` | `/perfil` | Actualizar nombre o avatar |
 | `GET` | `/categorias` | Categorías disponibles |
+| `GET` | `/health` | Health check |
 
 ---
 
 ## 🛠️ Solución de problemas
 
-### ❌ Error de conexión a MySQL
-```
-sqlalchemy.exc.OperationalError: (pymysql.err.OperationalError) Can't connect to MySQL
-```
-→ Verifica que MySQL esté corriendo: `mysql -u root -p`  
-→ Revisa las credenciales en `config.py` o variables de entorno.
-
-### ❌ La base de datos no existe
-```
-Unknown database 'finny_db'
-```
-→ Ejecuta: `CREATE DATABASE finny_db;` en MySQL.
-
-### ❌ ModuleNotFoundError
-```
-ModuleNotFoundError: No module named 'pymysql'
-```
-→ Ejecuta: `pip install -r requirements.txt`
-
 ### ❌ CORS Error en el navegador
-→ Asegúrate de acceder desde `http://localhost:8080` (NO abrir el HTML directamente como `file://…`)  
+→ Usa `http://localhost:8080` (NO abrir el HTML como `file://…`)  
 → Verifica que el backend esté corriendo en el puerto 5000.
+
+### ❌ Datos no persisten en Vercel
+→ SQLite en Vercel es efímero. Configura `DATABASE_URL` con Neon/PostgreSQL.
+
+### ❌ ModuleNotFoundError en Vercel
+→ Verifica que `requirements.txt` esté en la raíz del proyecto.
 
 ---
 

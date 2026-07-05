@@ -1,0 +1,95 @@
+{
+  "version": 2,
+  "builds": [
+    {
+      "src": "api/index.py",
+      "use": "@vercel/python",
+      "config": {
+        "maxLambdaSize": "15mb",
+        "runtime": "python3.11"
+      }
+    },
+    {
+      "src": "frontend/index.html",
+      "use": "@vercel/static"
+    },
+    {
+      "src": "frontend/app.js",
+      "use": "@vercel/static"
+    }
+  ],
+  "routes": [
+    {
+      "src": "/api/(.*)",
+      "dest": "/api/index.py"
+    },
+    {
+      "src": "/auth/(.*)",
+      "dest": "/api/index.py"
+    },
+    {
+      "src": "/dashboard",
+      "dest": "/api/index.py"
+    },
+    {
+      "src": "/compras(.*)",
+      "dest": "/api/index.py"
+    },
+    {
+      "src": "/estadisticas",
+      "dest": "/api/index.py"
+    },
+    {
+      "src": "/tendencia",
+      "dest": "/api/index.py"
+    },
+    {
+      "src": "/presupuesto",
+      "dest": "/api/index.py"
+    },
+    {
+      "src": "/budget",
+      "dest": "/api/index.py"
+    },
+    {
+      "src": "/racha",
+      "dest": "/api/index.py"
+    },
+    {
+      "src": "/misiones",
+      "dest": "/api/index.py"
+    },
+    {
+      "src": "/logros",
+      "dest": "/api/index.py"
+    },
+    {
+      "src": "/consejos(.*)",
+      "dest": "/api/index.py"
+    },
+    {
+      "src": "/perfil",
+      "dest": "/api/index.py"
+    },
+    {
+      "src": "/categorias",
+      "dest": "/api/index.py"
+    },
+    {
+      "src": "/health",
+      "dest": "/api/index.py"
+    },
+    {
+      "src": "/app.js",
+      "dest": "/frontend/app.js"
+    },
+    {
+      "src": "/(.*)",
+      "dest": "/frontend/index.html"
+    }
+  ],
+  "env": {
+    "FLASK_ENV": "production",
+    "VERCEL_ENV": "production"
+  }
+}

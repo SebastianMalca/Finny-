@@ -1,3 +1,7 @@
+# FINNY — Python dependencies
+# Para PostgreSQL (Neon/Railway): instalar también psycopg2-binary
+# Para MySQL: PyMySQL ya incluido
+
 Flask==2.3.3
 Flask-CORS==4.0.0
 Werkzeug==2.3.7
@@ -6,3 +10,9 @@ Flask-Login==0.6.3
 Flask-Migrate==4.0.5
 PyMySQL==1.1.0
 cryptography==41.0.7
+
+# Para despliegue en Vercel / producción
+gunicorn==21.2.0
+
+# Para PostgreSQL (Neon, Railway, Supabase, etc.)
+psycopg2-binary==2.9.9
