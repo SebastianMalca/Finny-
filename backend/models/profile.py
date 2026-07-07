@@ -17,8 +17,9 @@ class UserProfile(db.Model):
     xp         = db.Column(db.Integer,  default=0, nullable=False)
     level      = db.Column(db.Integer,  default=1, nullable=False)
     avatar     = db.Column(db.String(10), default='JV')
-    tips_read  = db.Column(db.Integer,  default=0, nullable=False)
-    created_at = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
+    tips_read          = db.Column(db.Integer,  default=0, nullable=False)
+    last_tip_read_date = db.Column(db.String(10), nullable=True)   # ISO date: YYYY-MM-DD
+    created_at         = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
 
     user = db.relationship('User', back_populates='profile')
 
@@ -36,8 +37,9 @@ class UserProfile(db.Model):
             'xp':          self.xp,
             'level':       self.level,
             'avatar':      self.avatar,
-            'tips_read':   self.tips_read,
-            'xp_for_next': xp_for_next,
+            'tips_read':          self.tips_read,
+            'last_tip_read_date': self.last_tip_read_date,
+            'xp_for_next':        xp_for_next,
             'xp_progress': xp_progress,
             'xp_pct':      xp_pct,
         }

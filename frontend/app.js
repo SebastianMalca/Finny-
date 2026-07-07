@@ -1,6 +1,6 @@
 // ═══════════════════════════════════════════════════════════════
-// FINNY Finance App — Frontend v3
-// Dark dashboard with Auth: login, registro, recuperación de contraseña.
+// FINNY Finance App — Frontend v4
+// Dark dashboard with Auth, saving streaks, dismissable tips, animated UI.
 // ═══════════════════════════════════════════════════════════════
 
 // API base URL — automáticamente local en dev, relativo en producción (Vercel)
@@ -322,9 +322,9 @@ async function loadDashboard() {
     // Budget progress
     updateBudgetProgress(data);
 
-    // Stats row
-    setText('today-spent', fmt(data.today_spent));
-    setText('week-spent',  fmt(data.week_spent));
+    // Stats row — with animated counters
+    animateValue('today-spent', data.today_spent, '$');
+    animateValue('week-spent',  data.week_spent,  '$');
     const diff = data.today_vs_yesterday;
     const diffEl = document.getElementById('today-vs-yesterday');
     if (diffEl) {
@@ -377,14 +377,14 @@ function updateBalanceCard(data) {
     amountEl.style.fontSize = '1.8rem';
   } else if (data.overspent) {
     card.classList.add('alert-overspent');
-    amountEl.textContent = `-${fmt(data.month_spent - data.budget)}`;
+    animateValue('balance-amount', data.month_spent - data.budget, '-$');
     amountEl.style.fontSize = '2.4rem';
   } else if (data.alert_mode) {
     card.classList.add('alert-low');
-    amountEl.textContent = fmt(data.remaining);
+    animateValue('balance-amount', data.remaining, '$');
     amountEl.style.fontSize = '2.4rem';
   } else {
-    amountEl.textContent = fmt(data.remaining);
+    animateValue('balance-amount', data.remaining, '$');
     amountEl.style.fontSize = '2.8rem';
   }
 
@@ -400,6 +400,7 @@ function updateBudgetProgress(data) {
   const spentLabel  = document.getElementById('budget-spent-label');
   const ofLabel     = document.getElementById('budget-of-label');
   const noHint      = document.getElementById('no-budget-hint');
+  const track       = fill?.parentElement;
 
   if (!data.budget) {
     if (noHint) noHint.style.display = 'block';
@@ -414,6 +415,11 @@ function updateBudgetProgress(data) {
     fill.classList.remove('warning', 'danger');
     if (data.overspent)       fill.classList.add('danger');
     else if (data.alert_mode) fill.classList.add('warning');
+  }
+  // Add tooltip to progress bar track
+  if (track) {
+    track.setAttribute('data-tooltip',
+      `Gastado ${fmt(data.month_spent)} de ${fmt(data.budget)} (${pct.toFixed(1)}%)`);
   }
   if (pctLabel)   pctLabel.textContent = pct.toFixed(1) + '%';
   if (totalLabel) totalLabel.textContent = fmt(data.budget);
@@ -449,14 +455,17 @@ function updateStreakUI(streak) {
   const count = streak.current_streak;
   setText('streak-count', count);
 
-  // Flame animation: bigger when streak is active
+  // Flame icon: pig for saving streaks
   const flame = document.getElementById('streak-flame');
-  if (flame) flame.style.display = count > 0 ? 'inline' : 'inline';
+  if (flame) {
+    flame.textContent = count > 0 ? '🐷' : '💤';
+    flame.style.display = 'inline';
+  }
 
   const longest = document.getElementById('streak-longest');
-  if (longest) longest.textContent = `Mejor racha: ${streak.longest_streak} días · Total activos: ${streak.total_active_days}`;
+  if (longest) longest.textContent = `Mejor racha: ${streak.longest_streak} días · Total: ${streak.total_active_days} días ahorrando`;
 
-  // 7-day dots
+  // 7-day dots — showing saving status
   const row = document.getElementById('streak-days-row');
   if (!row) return;
   row.innerHTML = '';
@@ -467,6 +476,7 @@ function updateStreakUI(streak) {
     const div   = document.createElement('div');
     div.className = 'streak-day';
     div.textContent = label;
+    div.title = d.toLocaleDateString('es', { day: '2-digit', month: 'short' });
     if (i === 0 && streak.last_active_date === d.toISOString().split('T')[0]) {
       div.classList.add('today');
     } else if (streak.last_active_date && i > 0) {
@@ -510,6 +520,48 @@ function updateProfileUI(profile) {
 function levelTitle(lvl) {
   const titles = ['','Novato','Aprendiz','Curioso','Talento','Experto','Maestro','Gurú','Leyenda'];
   return titles[Math.min(lvl, titles.length - 1)] ?? 'Élite';
+}
+
+// ═══════════════════════════════════════════════════════════════
+// ANIMATED COUNTER
+// ═══════════════════════════════════════════════════════════════
+
+function animateValue(elementId, targetValue, prefix = '$', duration = 600) {
+  const el = document.getElementById(elementId);
+  if (!el) return;
+
+  const target = parseFloat(targetValue) || 0;
+  const startValue = parseFloat(el.textContent.replace(/[^0-9.-]/g, '')) || 0;
+  const startTime = performance.now();
+
+  function update(currentTime) {
+    const elapsed = currentTime - startTime;
+    const progress = Math.min(elapsed / duration, 1);
+    // ease-out cubic
+    const eased = 1 - Math.pow(1 - progress, 3);
+    const current = startValue + (target - startValue) * eased;
+    el.textContent = prefix + current.toFixed(2);
+
+    if (progress < 1) {
+      requestAnimationFrame(update);
+    } else {
+      el.textContent = prefix + target.toFixed(2);
+    }
+  }
+
+  requestAnimationFrame(update);
+}
+
+// ═══════════════════════════════════════════════════════════════
+// XP GAIN FLASH
+// ═══════════════════════════════════════════════════════════════
+
+function flashXpGain() {
+  const fills = document.querySelectorAll('.xp-bar-fill');
+  fills.forEach(f => {
+    f.classList.add('xp-gained');
+    setTimeout(() => f.classList.remove('xp-gained'), 900);
+  });
 }
 
 // ═══════════════════════════════════════════════════════════════
@@ -775,7 +827,16 @@ async function submitPurchase(e, prefix) {
     document.getElementById(`${prefix}-name`).value = '';
     document.getElementById(`${prefix}-amount`).value = '';
 
-    // Check for missions/achievements in background
+    // Success flash on button
+    const btn = document.getElementById(`${prefix}-submit`);
+    if (btn) {
+      btn.classList.add('success-flash');
+      setTimeout(() => btn.classList.remove('success-flash'), 700);
+    }
+
+    // XP gain flash
+    flashXpGain();
+
     toast(`💸 Gasto registrado — +5 XP`, 'success');
 
     await Promise.all([
@@ -909,35 +970,125 @@ async function loadRightPanelActivity() {
   } catch(e) { /* offline */ }
 }
 
+// ═══════════════════════════════════════════════════════════════
+// TIPS — Dismissable, once-per-day XP
+// ═══════════════════════════════════════════════════════════════
+
+/**
+ * Get today's dismissed tip IDs from localStorage.
+ */
+function getDismissedTips() {
+  try {
+    const stored = JSON.parse(localStorage.getItem('finny_dismissed_tips') || '{}');
+    const today  = new Date().toISOString().split('T')[0];
+    // Clean up old entries (not today)
+    if (stored.date !== today) {
+      return { date: today, ids: [] };
+    }
+    return stored;
+  } catch {
+    return { date: new Date().toISOString().split('T')[0], ids: [] };
+  }
+}
+
+/**
+ * Mark a tip as dismissed in localStorage.
+ */
+function dismissTipLocally(tipId) {
+  const data = getDismissedTips();
+  if (!data.ids.includes(tipId)) {
+    data.ids.push(tipId);
+  }
+  localStorage.setItem('finny_dismissed_tips', JSON.stringify(data));
+}
+
+/**
+ * Check if a tip has been dismissed today.
+ */
+function isTipDismissed(tipId) {
+  const data = getDismissedTips();
+  return data.ids.includes(tipId);
+}
+
 async function loadRightPanelTips() {
   try {
-    const data = await api('GET', '/consejos?limit=2');
+    const data = await api('GET', '/consejos?limit=3');
     const el   = document.getElementById('rp-tips');
+    const section = document.getElementById('rp-tips-section');
     if (!el) return;
 
+    // Filter out dismissed tips
+    const tips = data.tips.filter(tip => !isTipDismissed(tip.id));
+
+    if (!tips.length) {
+      if (section) section.style.display = 'none';
+      return;
+    }
+    if (section) section.style.display = 'block';
+
     el.innerHTML = '';
-    data.tips.forEach(tip => {
+    tips.forEach(tip => {
       const card = document.createElement('div');
       card.className = `tip-card tip-${tip.color ?? 'blue'}`;
-      card.title     = 'Clic para marcar como leído (+5 XP)';
       card.innerHTML = `
         <span class="tip-icon">${tip.icon}</span>
         <div class="tip-body">
           <div class="tip-title">${esc(tip.title)}</div>
           <div class="tip-text">${esc(tip.text)}</div>
+          <span class="tip-xp-badge">+5 XP al leer</span>
         </div>
+        <button class="tip-close" title="Cerrar consejo">✕</button>
       `;
-      card.addEventListener('click', async () => {
-        try {
-          await api('POST', '/consejos/leer');
-          toast('📚 +5 XP — Consejo leído', 'award');
-          loadDashboard();
-          loadRightPanelTips();
-        } catch(e) { /* silent */ }
+
+      // Close button handler
+      const closeBtn = card.querySelector('.tip-close');
+      closeBtn.addEventListener('click', async (e) => {
+        e.stopPropagation();
+        await handleTipDismiss(tip.id, card);
       });
+
+      // Card click handler (also dismisses)
+      card.addEventListener('click', async () => {
+        await handleTipDismiss(tip.id, card);
+      });
+
       el.appendChild(card);
     });
   } catch(e) { /* offline */ }
+}
+
+async function handleTipDismiss(tipId, cardElement) {
+  // Prevent double-clicks
+  if (cardElement.classList.contains('dismissing')) return;
+
+  // Animate out
+  cardElement.classList.add('dismissing');
+
+  // Mark locally
+  dismissTipLocally(tipId);
+
+  // Call backend to try to get XP
+  try {
+    const result = await api('POST', '/consejos/leer');
+    if (!result.already_read) {
+      toast('📚 +5 XP — Consejo leído', 'award');
+      flashXpGain();
+      loadDashboard(); // refresh XP/level display
+    } else {
+      toast('📚 Consejo cerrado (ya leíste uno hoy)', 'info');
+    }
+  } catch(e) { /* silent */ }
+
+  // Remove after animation completes
+  setTimeout(() => {
+    cardElement.remove();
+    // Hide section if no tips left
+    const el = document.getElementById('rp-tips');
+    const section = document.getElementById('rp-tips-section');
+    if (el && !el.children.length && section) {
+      section.style.display = 'none';
+    }
+  }, 400);
 }
 
 // ═══════════════════════════════════════════════════════════════

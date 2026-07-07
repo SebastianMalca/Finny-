@@ -1,6 +1,7 @@
 # backend/repositories/profile_repository.py
 # Data-access layer for UserProfile.
 
+from datetime import date
 from backend.models import db
 from backend.models.profile import UserProfile, XP_PER_LEVEL
 
@@ -42,9 +43,19 @@ class ProfileRepository:
         return profile
 
     @staticmethod
+    def has_read_tip_today(user_id: int) -> bool:
+        """Check if the user already read a tip today."""
+        profile = ProfileRepository.find_by_user(user_id)
+        if not profile:
+            return False
+        return profile.last_tip_read_date == date.today().isoformat()
+
+    @staticmethod
     def increment_tips_read(user_id: int) -> UserProfile:
+        """Increment tips_read counter and record today's date."""
         profile = ProfileRepository.find_by_user(user_id)
         if profile:
             profile.tips_read += 1
+            profile.last_tip_read_date = date.today().isoformat()
             db.session.commit()
         return profile

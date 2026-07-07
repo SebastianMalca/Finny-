@@ -4,13 +4,14 @@
 from flask import Blueprint, jsonify
 from flask_login import current_user
 
-from backend.services.dashboard_service     import DashboardService
-from backend.services.tips_service          import get_tips
-from backend.services.profile_service       import ProfileService
-from backend.repositories.streak_repository import StreakRepository
+from backend.services.dashboard_service      import DashboardService
+from backend.services.tips_service           import get_tips
+from backend.services.profile_service        import ProfileService
+from backend.services.gamification_service   import GamificationService
+from backend.repositories.streak_repository  import StreakRepository
 from backend.repositories.mission_repository import MissionRepository
-from backend.utils.auth_decorators          import login_required_json
-from transversal.constants                  import CATEGORIES
+from backend.utils.auth_decorators           import login_required_json
+from transversal.constants                   import CATEGORIES
 
 dashboard_bp = Blueprint('dashboard', __name__)
 
@@ -21,6 +22,11 @@ def dashboard():
     """Single endpoint that returns everything needed for the main view."""
     try:
         uid    = current_user.id
+
+        # Evaluate saving streak BEFORE building the dashboard data
+        # This checks if the user saved yesterday and updates the streak
+        GamificationService.evaluate_saving_streak(uid)
+
         data   = DashboardService.get(uid)
         streak = StreakRepository.find_by_user(uid)
 

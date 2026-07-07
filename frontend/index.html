@@ -367,23 +367,12 @@ select option { background: #1a1b2e; color: var(--text); }
 .page-header p  { font-size:.875rem; color:var(--text-muted); margin-top:4px; }
 
 /* SECTION visibility */
-.section { display:none; animation: fadeIn .3s ease; }
+.section { display:none; animation: fadeIn .4s cubic-bezier(.4,0,.2,1); }
 .section.active { display:block; }
 
-@keyframes fadeIn { from{opacity:0;transform:translateY(8px)} to{opacity:1;transform:translateY(0)} }
+@keyframes fadeIn { from{opacity:0;transform:translateY(12px)} to{opacity:1;transform:translateY(0)} }
 
-/* ═══════════════════════════════════════════════════
-   GLASS CARDS
-═══════════════════════════════════════════════════ */
-.glass-card {
-  background: var(--bg-card);
-  backdrop-filter: blur(20px);
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-  padding: 22px;
-  transition: var(--transition);
-}
-.glass-card:hover { border-color: var(--border-h); }
+/* Glass card base is defined in the IMPROVED HOVER section below */
 
 .card-title {
   font-size:.75rem; font-weight:700; letter-spacing:1px;
@@ -412,18 +401,26 @@ select option { background: #1a1b2e; color: var(--text); }
   border-radius: var(--radius);
   padding: 20px;
   position:relative; overflow:hidden;
-  transition: var(--transition);
+  transition: all .3s cubic-bezier(.4,0,.2,1);
 }
-.stat-card:hover { border-color: var(--border-h); transform:translateY(-2px); }
+.stat-card:hover {
+  border-color: var(--border-h);
+  transform: translateY(-3px) scale(1.01);
+  box-shadow: 0 8px 32px rgba(0,0,0,.3);
+}
 .stat-card::before {
   content:''; position:absolute; top:0; right:0;
   width:80px; height:80px; border-radius:50%;
   opacity:.1; transform:translate(25%,-25%);
+  transition: opacity .3s ease;
 }
+.stat-card:hover::before { opacity: .18; }
 .stat-card.blue   { border-top: 2px solid var(--blue); }
 .stat-card.blue::before   { background: var(--blue); }
+.stat-card.blue:hover { box-shadow: 0 8px 32px rgba(79,172,254,.12); }
 .stat-card.purple { border-top: 2px solid var(--purple); }
 .stat-card.purple::before { background: var(--purple); }
+.stat-card.purple:hover { box-shadow: 0 8px 32px rgba(168,85,247,.12); }
 .stat-card.pink   { border-top: 2px solid var(--pink); }
 .stat-card.pink::before   { background: var(--pink); }
 .stat-card.teal   { border-top: 2px solid var(--teal); }
@@ -431,7 +428,8 @@ select option { background: #1a1b2e; color: var(--text); }
 .stat-card.green  { border-top: 2px solid var(--green); }
 .stat-card.green::before  { background: var(--green); }
 
-.stat-icon   { font-size:1.4rem; margin-bottom:10px; }
+.stat-icon   { font-size:1.4rem; margin-bottom:10px; transition: transform .3s ease; }
+.stat-card:hover .stat-icon { transform: scale(1.15); }
 .stat-label  { font-size:.72rem; color:var(--text-muted); font-weight:600; letter-spacing:.5px; text-transform:uppercase; margin-bottom:6px; }
 .stat-value  { font-size:1.7rem; font-weight:800; letter-spacing:-1px; line-height:1; }
 .stat-value.blue   { color:var(--blue);   text-shadow: 0 0 20px rgba(79,172,254,.4); }
@@ -564,9 +562,16 @@ select option { background: #1a1b2e; color: var(--text); }
 
 .empty-state {
   text-align:center; padding:40px 20px; color:var(--text-muted);
-  font-size:.875rem;
+  font-size:.875rem; animation: fadeIn .4s ease;
 }
-.empty-state .empty-icon { font-size:2.5rem; margin-bottom:10px; opacity:.5; }
+.empty-state .empty-icon {
+  font-size:2.5rem; margin-bottom:10px; opacity:.5;
+  animation: bounceSubtle 2s ease-in-out infinite;
+}
+@keyframes bounceSubtle {
+  0%,100% { transform: translateY(0); }
+  50%     { transform: translateY(-6px); }
+}
 
 /* ═══════════════════════════════════════════════════
    STREAK UI
@@ -576,14 +581,14 @@ select option { background: #1a1b2e; color: var(--text); }
 }
 .streak-flame {
   font-size:2rem;
-  filter: drop-shadow(0 0 8px rgba(245,158,11,.7));
-  animation: flamePulse 2s ease-in-out infinite;
+  filter: drop-shadow(0 0 8px rgba(34,197,94,.7));
+  animation: savingPulse 2s ease-in-out infinite;
 }
-@keyframes flamePulse {
-  0%,100% { transform:scale(1); filter:drop-shadow(0 0 8px rgba(245,158,11,.7)); }
-  50%      { transform:scale(1.1); filter:drop-shadow(0 0 14px rgba(245,158,11,1)); }
+@keyframes savingPulse {
+  0%,100% { transform:scale(1); filter:drop-shadow(0 0 8px rgba(34,197,94,.7)); }
+  50%      { transform:scale(1.1); filter:drop-shadow(0 0 14px rgba(34,197,94,1)); }
 }
-.streak-count { font-size:2.4rem; font-weight:800; color:var(--amber); letter-spacing:-1px; }
+.streak-count { font-size:2.4rem; font-weight:800; color:var(--green); letter-spacing:-1px; }
 .streak-label { font-size:.75rem; color:var(--text-muted); }
 
 .streak-days { display:flex; gap:6px; margin-top:12px; }
@@ -593,9 +598,18 @@ select option { background: #1a1b2e; color: var(--text); }
   font-size:.65rem; font-weight:600;
   border: 1px solid var(--border);
   background: var(--bg-card); color:var(--text-muted);
+  transition: all .2s ease;
+  position: relative;
 }
-.streak-day.done { background:rgba(245,158,11,.2); border-color:rgba(245,158,11,.4); color:var(--amber); }
-.streak-day.today { background:rgba(245,158,11,.35); border-color:var(--amber); color:#fff; }
+.streak-day:hover { transform: translateY(-2px); }
+.streak-day.done {
+  background:rgba(34,197,94,.2); border-color:rgba(34,197,94,.4); color:var(--green);
+  box-shadow: 0 0 8px rgba(34,197,94,.15);
+}
+.streak-day.today {
+  background:rgba(34,197,94,.35); border-color:var(--green); color:#fff;
+  box-shadow: 0 0 12px rgba(34,197,94,.3);
+}
 
 /* ═══════════════════════════════════════════════════
    MISSIONS
@@ -606,16 +620,22 @@ select option { background: #1a1b2e; color: var(--text); }
   background:var(--bg-card); border:1px solid var(--border);
   border-radius:var(--radius-sm); padding:16px;
   display:flex; gap:14px; align-items:flex-start;
-  transition:var(--transition);
+  transition: all .3s cubic-bezier(.4,0,.2,1);
 }
-.mission-card:hover { background:var(--bg-card-h); border-color:var(--border-h); }
+.mission-card:hover {
+  background:var(--bg-card-h); border-color:var(--border-h);
+  transform: translateX(4px);
+  box-shadow: -4px 0 16px rgba(79,172,254,.08);
+}
 .mission-card.done { opacity:.55; border-color:rgba(34,197,94,.3); }
 .mission-icon-wrap {
   width:40px; height:40px; border-radius:10px;
   background: var(--blue-dim); border:1px solid rgba(79,172,254,.2);
   display:flex; align-items:center; justify-content:center;
   font-size:1.1rem; flex-shrink:0;
+  transition: transform .3s ease;
 }
+.mission-card:hover .mission-icon-wrap { transform: scale(1.1) rotate(5deg); }
 .mission-card.done .mission-icon-wrap {
   background: var(--green-dim); border-color:rgba(34,197,94,.2);
 }
@@ -626,15 +646,28 @@ select option { background: #1a1b2e; color: var(--text); }
 .mission-xp {
   font-size:.7rem; font-weight:700; color:var(--purple);
   background:var(--purple-dim); padding:2px 8px; border-radius:20px;
+  transition: transform .2s ease;
 }
+.mission-card:hover .mission-xp { transform: scale(1.08); }
 .mission-pct { font-size:.7rem; color:var(--text-muted); }
-.mission-progress { height:4px; background:rgba(255,255,255,.07); border-radius:4px; margin-top:8px; }
+.mission-progress { height:4px; background:rgba(255,255,255,.07); border-radius:4px; margin-top:8px; overflow:hidden; }
 .mission-progress-fill {
   height:100%; border-radius:4px;
   background: linear-gradient(90deg, var(--blue), var(--purple));
-  transition: width .6s;
+  transition: width .6s cubic-bezier(.4,0,.2,1);
+  position: relative;
+}
+.mission-progress-fill::after {
+  content: ''; position: absolute; inset: 0;
+  background: linear-gradient(90deg, transparent 0%, rgba(255,255,255,.2) 50%, transparent 100%);
+  animation: shimmer 2s ease-in-out infinite;
+}
+@keyframes shimmer {
+  0%   { transform: translateX(-100%); }
+  100% { transform: translateX(100%); }
 }
 .mission-card.done .mission-progress-fill { background:var(--green); }
+.mission-card.done .mission-progress-fill::after { animation: none; }
 
 /* ═══════════════════════════════════════════════════
    ACHIEVEMENTS
@@ -693,13 +726,49 @@ select option { background: #1a1b2e; color: var(--text); }
 .tip-card {
   background:var(--bg-card); border:1px solid var(--border);
   border-radius:var(--radius-sm); padding:14px;
-  display:flex; gap:12px;
-  transition:var(--transition); cursor:pointer;
+  display:flex; gap:12px; position:relative;
+  transition: all .35s cubic-bezier(.4,0,.2,1);
+  cursor:pointer; overflow:hidden;
+  animation: tipSlideIn .4s cubic-bezier(.4,0,.2,1);
 }
-.tip-card:hover { background:var(--bg-card-h); border-color:var(--border-h); }
+.tip-card:hover {
+  background:var(--bg-card-h); border-color:var(--border-h);
+  transform: translateX(4px);
+}
+.tip-card.dismissing {
+  animation: tipSlideOut .35s cubic-bezier(.4,0,.2,1) forwards;
+}
+@keyframes tipSlideIn {
+  from { opacity:0; transform:translateX(-16px); }
+  to   { opacity:1; transform:translateX(0); }
+}
+@keyframes tipSlideOut {
+  0%   { opacity:1; transform:translateX(0); max-height:120px; margin-bottom:0; }
+  50%  { opacity:0; transform:translateX(60px); }
+  100% { opacity:0; transform:translateX(60px); max-height:0; padding:0; margin:0; border-width:0; overflow:hidden; }
+}
 .tip-icon { font-size:1.2rem; flex-shrink:0; line-height:1; padding-top:2px; }
+.tip-body { flex:1; min-width:0; }
 .tip-body .tip-title { font-size:.825rem; font-weight:700; margin-bottom:4px; }
 .tip-body .tip-text  { font-size:.78rem; color:var(--text-muted); line-height:1.5; }
+.tip-close {
+  position:absolute; top:8px; right:8px;
+  width:22px; height:22px; border-radius:6px;
+  background:none; border:1px solid transparent;
+  color:var(--text-muted); font-size:.7rem;
+  cursor:pointer; display:flex; align-items:center; justify-content:center;
+  transition: all .2s ease; opacity:0;
+}
+.tip-card:hover .tip-close { opacity:1; }
+.tip-close:hover {
+  background:rgba(239,68,68,.15); border-color:rgba(239,68,68,.3);
+  color:var(--red); transform:scale(1.1);
+}
+.tip-xp-badge {
+  font-size:.6rem; font-weight:700; color:var(--purple);
+  background:var(--purple-dim); padding:1px 6px; border-radius:10px;
+  margin-top:6px; display:inline-block;
+}
 .tip-card.tip-blue   { border-left:2px solid var(--blue);   }
 .tip-card.tip-purple { border-left:2px solid var(--purple); }
 .tip-card.tip-pink   { border-left:2px solid var(--pink);   }
@@ -852,6 +921,76 @@ select option { background: #1a1b2e; color: var(--text); }
 ::-webkit-scrollbar-track { background:transparent; }
 ::-webkit-scrollbar-thumb { background:rgba(255,255,255,.1); border-radius:4px; }
 ::-webkit-scrollbar-thumb:hover { background:rgba(255,255,255,.2); }
+
+/* ═══════════════════════════════════════════════════
+   BUTTON SUCCESS EFFECT
+═══════════════════════════════════════════════════ */
+.btn-primary.success-flash {
+  background: linear-gradient(135deg, var(--green), #22d3ee) !important;
+  box-shadow: 0 4px 20px rgba(34,197,94,.4) !important;
+  animation: successPulse .6s ease;
+}
+@keyframes successPulse {
+  0%   { transform: scale(1); }
+  30%  { transform: scale(1.05); }
+  60%  { transform: scale(0.98); }
+  100% { transform: scale(1); }
+}
+
+/* ═══════════════════════════════════════════════════
+   XP GAIN ANIMATION
+═══════════════════════════════════════════════════ */
+.xp-bar-fill.xp-gained {
+  animation: xpGlow .8s ease;
+}
+@keyframes xpGlow {
+  0%,100% { box-shadow: 0 0 8px rgba(168,85,247,.6); }
+  50%     { box-shadow: 0 0 20px rgba(168,85,247,1), 0 0 40px rgba(168,85,247,.4); }
+}
+
+/* ═══════════════════════════════════════════════════
+   GLASS CARD IMPROVED HOVER
+═══════════════════════════════════════════════════ */
+.glass-card {
+  background: var(--bg-card);
+  backdrop-filter: blur(20px);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 22px;
+  transition: all .3s cubic-bezier(.4,0,.2,1);
+}
+.glass-card:hover {
+  border-color: var(--border-h);
+  box-shadow: 0 4px 24px rgba(0,0,0,.15);
+}
+
+/* ═══════════════════════════════════════════════════
+   PROGRESS BAR TOOLTIP
+═══════════════════════════════════════════════════ */
+.progress-bar-track {
+  position: relative;
+  cursor: pointer;
+}
+.progress-bar-track[data-tooltip]:hover::after {
+  content: attr(data-tooltip);
+  position: absolute; bottom: 100%; left: 50%;
+  transform: translateX(-50%); margin-bottom: 6px;
+  background: rgba(13,17,40,.95); border: 1px solid var(--border);
+  border-radius: 8px; padding: 6px 10px;
+  font-size: .72rem; color: var(--text); white-space: nowrap;
+  pointer-events: none; z-index: 10;
+  animation: fadeIn .15s ease;
+}
+
+/* ═══════════════════════════════════════════════════
+   PURCHASE ITEM IMPROVED
+═══════════════════════════════════════════════════ */
+.purchase-item {
+  animation: fadeIn .3s cubic-bezier(.4,0,.2,1);
+}
+.purchase-item:hover {
+  transform: translateX(3px);
+}
 
 /* ═══════════════════════════════════════════════════
    UTIL
@@ -1099,12 +1238,12 @@ select option { background: #1a1b2e; color: var(--text); }
       <!-- Streak & Level -->
       <div class="two-col mt-16">
         <div class="glass-card">
-          <div class="card-title"><span class="dot" style="background:var(--amber)"></span>Racha diaria</div>
+          <div class="card-title"><span class="dot" style="background:var(--green)"></span>Racha de ahorro 🐷</div>
           <div class="streak-display">
-            <span class="streak-flame" id="streak-flame">🔥</span>
+            <span class="streak-flame" id="streak-flame">🐷</span>
             <div>
               <div class="streak-count" id="streak-count">0</div>
-              <div class="streak-label">días seguidos</div>
+              <div class="streak-label">días ahorrando</div>
             </div>
           </div>
           <div class="streak-days" id="streak-days-row"></div>
@@ -1411,8 +1550,8 @@ select option { background: #1a1b2e; color: var(--text); }
           <div class="mini-stat-label">Gastos</div>
         </div>
         <div class="mini-stat">
-          <div class="mini-stat-value purple" id="rp-streak-mini">0</div>
-          <div class="mini-stat-label">Racha 🔥</div>
+          <div class="mini-stat-value" style="color:var(--green)" id="rp-streak-mini">0</div>
+          <div class="mini-stat-label">Ahorro 🐷</div>
         </div>
         <div class="mini-stat">
           <div class="mini-stat-value pink" id="rp-week">$0</div>

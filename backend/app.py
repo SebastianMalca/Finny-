@@ -101,6 +101,15 @@ def create_app(config_name: str = None) -> Flask:
     # ── DB init ────────────────────────────────────────────────────────────────
     with app.app_context():
         db.create_all()
+        # ── Safe migration: add new columns to existing tables ─────────────
+        try:
+            db.session.execute(db.text(
+                "ALTER TABLE user_profiles ADD COLUMN last_tip_read_date VARCHAR(10)"
+            ))
+            db.session.commit()
+            print('[DB] Migration: added last_tip_read_date to user_profiles.')
+        except Exception:
+            db.session.rollback()  # column already exists
         print('[DB] Schema applied / verified.')
 
     return app
