@@ -27,9 +27,11 @@ class ProfileRepository:
         return profile
 
     @staticmethod
-    def update(profile: UserProfile, name: str = None, avatar: str = None) -> UserProfile:
+    def update(profile: UserProfile, name: str = None, avatar: str = None, daily_budget: float = None) -> UserProfile:
         if name:   profile.name   = name
         if avatar: profile.avatar = avatar
+        if daily_budget is not None:
+            profile.daily_budget = daily_budget
         db.session.commit()
         return profile
 

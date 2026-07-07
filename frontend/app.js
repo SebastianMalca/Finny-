@@ -1107,6 +1107,10 @@ async function loadConfig() {
     if (budgetInput && budgetData.monthly_amount > 0)
       budgetInput.value = budgetData.monthly_amount;
 
+    const dailyBudgetInput = document.getElementById('cfg-daily-budget');
+    if (dailyBudgetInput && profileData.daily_budget !== null)
+      dailyBudgetInput.value = profileData.daily_budget;
+
     const nameInput   = document.getElementById('cfg-name');
     const avatarInput = document.getElementById('cfg-avatar');
     if (nameInput)   nameInput.value   = profileData.name ?? '';
@@ -1129,11 +1133,26 @@ async function loadConfig() {
 async function saveBudget() {
   const input = document.getElementById('cfg-budget');
   const val   = parseFloat(input?.value);
-  if (isNaN(val) || val < 0) return toast('Ingresa un monto válido', 'error');
+  if (isNaN(val) || val < 0) return toast('Ingresa un monto mensual válido', 'error');
+
+  const dailyInput = document.getElementById('cfg-daily-budget');
+  const dailyVal   = dailyInput?.value ? parseFloat(dailyInput.value) : null;
+  if (dailyInput?.value && (isNaN(dailyVal) || dailyVal < 0)) return toast('Ingresa un monto diario válido', 'error');
+
   try {
+    // Save monthly budget
     await api('POST', '/presupuesto', { amount: val });
-    showAlert('cfg-budget-ok', `✅ Presupuesto de $${val.toFixed(2)} guardado.`);
-    toast('💰 Presupuesto guardado', 'success');
+    
+    // Save daily budget (to profile API)
+    const profileRes = await api('GET', '/perfil');
+    await api('PUT', '/perfil', { 
+      name: profileRes.name, 
+      avatar: profileRes.avatar,
+      daily_budget: dailyVal
+    });
+
+    showAlert('cfg-budget-ok', `✅ Presupuestos guardados correctamente.`);
+    toast('💰 Presupuestos guardados', 'success');
     loadDashboard();
   } catch(e) { toast('Error al guardar', 'error'); }
 }

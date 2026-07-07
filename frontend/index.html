@@ -1461,14 +1461,20 @@ select option { background: #1a1b2e; color: var(--text); }
       <div class="glass-card">
         <div class="card-title"><span class="dot" style="background:var(--green)"></span>Presupuesto mensual</div>
         <div class="inline-alert success" id="cfg-budget-ok"></div>
-        <div class="form-group">
-          <label for="cfg-budget">Cuánto dinero tienes disponible este mes ($)</label>
-          <input type="number" id="cfg-budget" step="0.01" min="0" placeholder="ej. 500.00">
+        <div class="form-row">
+          <div class="form-group">
+            <label for="cfg-budget">Monto mensual disponible ($)</label>
+            <input type="number" id="cfg-budget" step="0.01" min="0" placeholder="ej. 500.00">
+          </div>
+          <div class="form-group">
+            <label for="cfg-daily-budget">Presupuesto Diario para rachas ($)</label>
+            <input type="number" id="cfg-daily-budget" step="0.01" min="0" placeholder="Opcional. ej. 15.00">
+          </div>
         </div>
         <div class="form-actions mt-12">
-          <button class="btn btn-primary" onclick="saveBudget()">Guardar presupuesto</button>
+          <button class="btn btn-primary" onclick="saveBudget()">Guardar presupuestos</button>
         </div>
-        <p class="text-muted mt-8" style="font-size:.78rem;">FINNY usará este valor para calcular tu dinero diario disponible y activar alertas.</p>
+        <p class="text-muted mt-8" style="font-size:.78rem;">El Presupuesto Diario se usará para calcular tus rachas de ahorro. Si no lo configuras, solo cuentan los días en los que gastes $0.</p>
       </div>
 
       <!-- Profile config -->

@@ -55,44 +55,49 @@ class GamificationService:
 
     @staticmethod
     def evaluate_saving_streak(user_id: int):
-        """Evaluate whether the user saved yesterday and update the streak accordingly.
+        """Evaluate whether the user saved for all pending days up to yesterday.
         
         "Saving" means:
-        - If budget is set: yesterday's spending ≤ daily_budget (budget / days_in_month)
-        - If no budget: yesterday had $0 spending (encourages setting a budget)
-        
-        This is called on dashboard load to evaluate the previous day.
+        - If daily_budget is set: day's spending <= daily_budget
+        - If no daily_budget: day's spending == 0
         """
         today     = date.today()
         yesterday = today - timedelta(days=1)
 
-        # Check if streak already evaluated today (avoid double-counting)
         streak = StreakRepository.find_by_user(user_id)
-        if streak and streak.last_active_date == today.isoformat():
-            # Already evaluated today — just update mission progress
-            GamificationService._update_missions(user_id, 'streak', streak.current_streak)
+        profile = ProfileRepository.find_by_user(user_id)
+        if not profile:
             return streak
 
-        # Get yesterday's spending
-        yesterday_spent = PurchaseRepository.sum_by_date(user_id, yesterday)
-
-        # Get budget info
-        month_str  = yesterday.strftime('%Y-%m')
-        budget_row = BudgetRepository.find_by_month(user_id, month_str)
-
-        if budget_row and float(budget_row.monthly_amount) > 0:
-            days_in_month = calendar.monthrange(yesterday.year, yesterday.month)[1]
-            daily_budget  = float(budget_row.monthly_amount) / days_in_month
-            saved_yesterday = yesterday_spent <= daily_budget
+        # Determine from which date to start evaluating
+        if streak and streak.last_active_date:
+            last_eval = date.fromisoformat(streak.last_active_date)
+            start_date = last_eval + timedelta(days=1)
         else:
-            # No budget set: only $0 days count as saving
-            saved_yesterday = yesterday_spent == 0
+            # First time ever evaluating: just evaluate yesterday
+            start_date = yesterday
 
-        # Update the streak
-        streak = StreakRepository.update_saving_streak(user_id, saved_yesterday)
+        # Evaluate each day iteratively
+        current_eval_date = start_date
+        while current_eval_date <= yesterday:
+            daily_spent = PurchaseRepository.sum_by_date(user_id, current_eval_date)
+            
+            if profile.daily_budget and float(profile.daily_budget) > 0:
+                saved = daily_spent <= float(profile.daily_budget)
+            else:
+                saved = daily_spent == 0
+
+            streak = StreakRepository.update_saving_streak(user_id, saved, current_eval_date)
+            
+            # Award XP if saved
+            if saved:
+                ProfileRepository.add_xp(user_id, 10)
+
+            current_eval_date += timedelta(days=1)
 
         # Update streak-related missions
-        GamificationService._update_missions(user_id, 'streak', streak.current_streak)
+        if streak:
+            GamificationService._update_missions(user_id, 'streak', streak.current_streak)
 
         # Check achievements
         GamificationService._check_achievements(user_id)

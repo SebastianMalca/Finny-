@@ -28,6 +28,7 @@ def update_perfil():
             current_user.id,
             name=data.get('name',   '').strip() or None,
             avatar=data.get('avatar', '').strip() or None,
+            daily_budget=data.get('daily_budget')
         )
         return jsonify({'message': 'Perfil actualizado.', 'profile': profile}), 200
     except Exception as e:

@@ -110,6 +110,15 @@ def create_app(config_name: str = None) -> Flask:
             print('[DB] Migration: added last_tip_read_date to user_profiles.')
         except Exception:
             db.session.rollback()  # column already exists
+
+        try:
+            db.session.execute(db.text(
+                "ALTER TABLE user_profiles ADD COLUMN daily_budget NUMERIC(10, 2)"
+            ))
+            db.session.commit()
+            print('[DB] Migration: added daily_budget to user_profiles.')
+        except Exception:
+            db.session.rollback()  # column already exists
         print('[DB] Schema applied / verified.')
 
     return app

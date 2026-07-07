@@ -29,7 +29,13 @@ class DashboardService:
         week_spent  = PurchaseRepository.sum_since(user_id, week_start)
 
         remaining       = max(0.0, monthly_budget - month_spent)
-        daily_available = round(remaining / days_remaining, 2) if days_remaining > 0 else 0.0
+
+        from backend.repositories.profile_repository import ProfileRepository
+        profile = ProfileRepository.find_by_user(user_id)
+        if profile and profile.daily_budget is not None and float(profile.daily_budget) > 0:
+            daily_available = float(profile.daily_budget)
+        else:
+            daily_available = round(remaining / days_remaining, 2) if days_remaining > 0 else 0.0
         budget_used_pct = round(month_spent / monthly_budget * 100, 1) if monthly_budget > 0 else 0.0
         overspent       = monthly_budget > 0 and month_spent > monthly_budget
         alert_mode      = monthly_budget > 0 and not overspent and (remaining / monthly_budget) < 0.20

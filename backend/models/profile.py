@@ -19,6 +19,7 @@ class UserProfile(db.Model):
     avatar     = db.Column(db.String(10), default='JV')
     tips_read          = db.Column(db.Integer,  default=0, nullable=False)
     last_tip_read_date = db.Column(db.String(10), nullable=True)   # ISO date: YYYY-MM-DD
+    daily_budget       = db.Column(db.Numeric(10, 2), nullable=True) # None means not set
     created_at         = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
 
     user = db.relationship('User', back_populates='profile')
@@ -39,6 +40,7 @@ class UserProfile(db.Model):
             'avatar':      self.avatar,
             'tips_read':          self.tips_read,
             'last_tip_read_date': self.last_tip_read_date,
+            'daily_budget':       float(self.daily_budget) if self.daily_budget is not None else None,
             'xp_for_next':        xp_for_next,
             'xp_progress': xp_progress,
             'xp_pct':      xp_pct,
